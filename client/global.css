@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 14 88% 55%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 195 100% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 14 88% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Madagascar brand colors */
+    --madagascar-50: 14 100% 97%;
+    --madagascar-100: 14 100% 93%;
+    --madagascar-200: 14 100% 87%;
+    --madagascar-300: 14 100% 78%;
+    --madagascar-400: 14 100% 67%;
+    --madagascar-500: 14 88% 55%;
+    --madagascar-600: 14 77% 48%;
+    --madagascar-700: 14 67% 41%;
+    --madagascar-800: 14 58% 34%;
+    --madagascar-900: 14 50% 28%;
+
+    /* Ocean blue colors */
+    --ocean-50: 195 100% 97%;
+    --ocean-100: 195 100% 93%;
+    --ocean-200: 195 100% 87%;
+    --ocean-300: 195 100% 78%;
+    --ocean-400: 195 100% 67%;
+    --ocean-500: 195 100% 50%;
+    --ocean-600: 195 85% 45%;
+    --ocean-700: 195 75% 38%;
+    --ocean-800: 195 65% 31%;
+    --ocean-900: 195 55% 25%;
+
+    /* Forest green colors */
+    --forest-50: 145 60% 97%;
+    --forest-100: 145 60% 93%;
+    --forest-200: 145 60% 87%;
+    --forest-300: 145 60% 78%;
+    --forest-400: 145 60% 67%;
+    --forest-500: 145 60% 50%;
+    --forest-600: 145 50% 43%;
+    --forest-700: 145 45% 36%;
+    --forest-800: 145 40% 29%;
+    --forest-900: 145 35% 22%;
+
+    /* Sunset colors */
+    --sunset-50: 30 100% 97%;
+    --sunset-100: 30 100% 93%;
+    --sunset-200: 30 100% 87%;
+    --sunset-300: 30 100% 78%;
+    --sunset-400: 30 100% 67%;
+    --sunset-500: 30 100% 55%;
+    --sunset-600: 30 85% 48%;
+    --sunset-700: 30 75% 41%;
+    --sunset-800: 30 65% 34%;
+    --sunset-900: 30 55% 27%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    pointer-events: auto !important;
+    overflow: auto !important;
+  }
+}
+
