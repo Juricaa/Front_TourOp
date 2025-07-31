@@ -39,14 +39,8 @@ import {
 } from "../components/ui/dropdown-menu";
 import { CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Reservation, DateRange } from "@shared/types";
-import { reservationService } from "@/services/reservationService";
-import { ReservationActions } from "@/components/ReservationActions";
+import type { Reservation } from "@shared/types";
 import { factureService } from "@/services/factureService";
-import { useAppDispatch } from "@/hooks/store";
-import { setDateRange } from "@/hooks/dateSlice";
-import { J } from "vitest/dist/chunks/reporters.d.C-cu31ET.js";
-import { hebergementService } from "@/services/hebergementService";
 import { toast } from "@/hooks/use-toast";
 
 

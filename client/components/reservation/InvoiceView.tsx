@@ -58,7 +58,7 @@ import {
   
   export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
     const currencySymbol = invoice.currency === 'MGA' ? 'Ar' : invoice.currency === 'EUR' ? '€' : '$';
-    
+    console.log("data facture", invoice);
     const formatPrice = (price: number) => {
       return new Intl.NumberFormat('fr-FR', {
         minimumFractionDigits: 2,
@@ -67,6 +67,7 @@ import {
     };
   
     return (
+      
       <>
         <DialogHeader className="mb-3">
           <DialogTitle className="mb-2"> 

@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { usePDF } from 'react-to-pdf';
 import { toast } from 'sonner';
 import { API_BASE_URL } from "@/services/apiConfig";
-import type { Client, Invoice, SingleReservation } from "@shared/types";
+import type { Client, Invoice, SingleReservation, TravelPlan } from "@shared/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InvoiceView } from "../components/reservation/InvoiceView";
@@ -16,7 +16,8 @@ import { ServicesSection } from "../components/reservation/ServicesSection";
 import { SummaryCard } from "../components/reservation/SummaryCard";
 import { NotesCard } from "../components/reservation/NotesCard";
 import { ArrowLeft, Download, CheckCircle, Clock, XCircle, Building, Plane } from "lucide-react";
-import { TravelPlanModal } from "@/components/reservation/TravelPlanModal";
+// import { TravelPlanModal } from "@/components/reservation/TravelPlanModal";
+import { TravelPlanView } from "@/components/reservation/TravelPlanView";
 
 export default function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -396,6 +397,38 @@ export default function ReservationDetail() {
     };
   };
 
+  const getTravelPlanData = (): TravelPlan | null => {
+    if (!reservation || !client) {
+      console.error("Données manquantes - Client:", client, "Reservation:", reservation);
+      return null;
+    }
+  
+    return {
+      factureId,
+      clientName: client.name,
+      date_debut,
+      date_fin,
+      vols: reservation.vols?.map(vol => ({
+        airline: vol.airline,
+        departure: vol.departure,
+        arrival: vol.arrival,
+        passengers: vol.passengers
+      })),
+      hebergements: reservation.hebergements?.map(heb => ({
+        name: heb.name,
+        location: heb.location,
+        checkIn: heb.checkIn,
+        checkOut: heb.checkOut,
+        guests: heb.guests
+      })),
+      activites: reservation.activites?.map(act => ({
+        name: act.name,
+        date: act.date,
+        participants: act.participants
+      }))
+    };
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -455,17 +488,7 @@ export default function ReservationDetail() {
         // }} 
         />
 
-      <TravelPlanModal
-        isOpen={isTravelPlanOpen}
-        onOpenChange={setIsTravelPlanOpen}
-        factureId={factureId}
-        client={client}
-        date_debut={date_debut}
-        date_fin={date_fin}
-        reservation={reservation}
-        toPDF={toPDF}
-      />
-
+       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInfoCard client={client} />
@@ -534,71 +557,8 @@ export default function ReservationDetail() {
           
           
           
-          <div className="space-y-6" ref={planRef}>
-            <DialogHeader>
-              <DialogTitle>Plan de voyage - Réservation {factureId}</DialogTitle>
-              <DialogDescription>
-                Itinéraire détaillé pour {client?.name}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="grid grid-cols-3 gap-4 py-4 border-y">
-              <div>
-                <p className="text-sm text-muted-foreground">Période</p>
-                <p className="font-medium">
-                  {new Date(date_debut).toLocaleDateString("fr-FR")}
-                  {date_fin && ` - ${new Date(date_fin).toLocaleDateString("fr-FR")}`}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Client</p>
-                <p className="font-medium">{client?.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Participants</p>
-                <p className="font-medium">{client?.nbpersonnes} personne(s)</p>
-              </div>
-            </div>
-
-            {/* Itinéraire détaillé */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Itinéraire</h3>
-              {reservation?.vols?.map((vol, index) => (
-                <div key={`vol-${index}`} className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Plane className="w-5 h-5 text-blue-500" />
-                    <span className="font-medium">Vol {index + 1}: {vol.airline}</span>
-                  </div>
-                  <div className="mt-2 ml-7">
-                    <p>{vol.departure} → {vol.arrival}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {vol.passengers} passager(s)
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {reservation?.hebergements?.map((hebergement, index) => (
-                <div key={`hebergement-${index}`} className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Building className="w-5 h-5 text-green-500" />
-                    <span className="font-medium">Hébergement: {hebergement.name}</span>
-                  </div>
-                  <div className="mt-2 ml-7">
-                    <p>
-                      {new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} -
-                      {new Date(hebergement.checkOut).toLocaleDateString("fr-FR")}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {hebergement.location} • {hebergement.guests} personne(s)
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Ajoutez des sections similaires pour les voitures et activités si nécessaire */}
-            </div>
-
+          <div ref={planRef}>
+          {getTravelPlanData() && <TravelPlanView plan={getTravelPlanData()!} />}
           </div>
           
         </DialogContent>
