@@ -406,6 +406,7 @@ export default function ReservationDetail() {
     return {
       factureId,
       clientName: client.name,
+      nbPersonne : client.nbpersonnes,
       date_debut,
       date_fin,
       vols: reservation.vols?.map(vol => ({

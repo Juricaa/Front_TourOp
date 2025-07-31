@@ -10,6 +10,7 @@ interface TravelPlan {
   clientName: string;
   date_debut: string;
   date_fin?: string;
+  nbPersonne : String;
   vols?: {
     airline: string;
     departure: string;
@@ -55,7 +56,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
       </div>
       <div>
         <p className="text-sm text-muted-foreground">Participants</p>
-        <p className="font-medium">{} personne(s)</p>
+        <p className="font-medium">{plan.nbPersonne} personne(s)</p>
       </div>
     </div>
 
