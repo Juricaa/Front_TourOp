@@ -123,31 +123,25 @@ class FactureService {
   async updateFacture(
     id: string,
     factureData: UpdateInvoiceData,
-  ): Promise<Invoice> {
+  ): Promise<ApiResponse<Invoice>> {
     try {
-      const response = await fetchApi(`${API_BASE_URL}/api/factures/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/factures/${id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(factureData),
       });
+      console.log(factureData);
 
-      if (!response.success || !response.data) {
-        throw new Error(
-          response.error || "Erreur lors de la modification de la facture",
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error(
-        `Erreur lors de la modification de la facture ${id}:`,
-        error,
-      );
-      throw error;
-    }
-  }
+      return this.handleResponse<Invoice>(response);
+          } catch (error) {
+            return {
+              success: false,
+              error: "Network error: Unable to update client",
+            };
+          }
+        }
 
   async deleteFacture(id: string, params?: { date_debut?: string; date_fin?: string }): Promise<{ success: boolean; message?: string; deleted_count?: number }> {
     try {

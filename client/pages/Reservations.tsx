@@ -51,7 +51,7 @@ export default function Reservations() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState(null)
 
-  
+
   useEffect(() => {
     fetchReservations();
   }, []);
@@ -63,6 +63,7 @@ export default function Reservations() {
       if (response.success && response.data) {
 
         setReservations(response.data);
+        console.log (reservations)
       }
     } catch (error) {
       console.error("Error fetching reservations:", error);
@@ -80,9 +81,9 @@ export default function Reservations() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "confirmé":
         return "bg-forest-100 text-forest-800 border-forest-200";
-      case "pending":
+      case "en_attente":
         return "bg-sunset-100 text-sunset-800 border-sunset-200";
       case "cancelled":
         return "bg-destructive/10 text-destructive border-destructive/20";
@@ -128,40 +129,66 @@ export default function Reservations() {
     );
   }
 
- 
+
   const handleDelete = async (id: string, isPeriodDelete = false, period?: { start: string; end: string }) => {
     try {
-        let response;
-        
-        if (isPeriodDelete && period) {
-            response = await factureService.deleteFacture(id, {
-                date_debut: period.start,
-                date_fin: period.end
-            });
-        } else {
-            response = await factureService.deleteFacture(id);
-        }
+      let response;
 
-        if (response.success) {
-            toast({
-                title: "Succès",
-                description: isPeriodDelete 
-                    ? `${response.deleted_count || 'Toutes'} réservation(s) supprimée(s) pour cette période` 
-                    : "Réservation supprimée avec succès",
-            });
-            await fetchReservations();
-        } else {
-            throw new Error(response.message || "Erreur lors de la suppression");
-        }
-    } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
-        toast({
-            title: "Erreur",
-            description: `Impossible de supprimer: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
-            variant: "destructive",
+      if (isPeriodDelete && period) {
+        response = await factureService.deleteFacture(id, {
+          date_debut: period.start,
+          date_fin: period.end
         });
+      } else {
+        response = await factureService.deleteFacture(id);
+      }
+
+      if (response.success) {
+        toast({
+          title: "Succès",
+          description: isPeriodDelete
+            ? `${response.deleted_count || 'Toutes'} réservation(s) supprimée(s) pour cette période`
+            : "Réservation supprimée avec succès",
+        });
+        await fetchReservations();
+      } else {
+        throw new Error(response.message || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de supprimer: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        variant: "destructive",
+      });
     }
-};
+  };
+
+  const handleConfirm = async (invoiceId: string , id : string ) => {
+    try {
+      // Update the invoice status to "paid" (as a confirmation)
+      const updatedData = {
+        clientId: id,
+        status: "confirmé",
+
+      };
+
+      const response = await factureService.updateFacture(invoiceId, updatedData);
+      fetchReservations();
+
+      toast({
+        title: "Succès",
+        description: "Reservation confirmée avec succès",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la confirmation:", error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de confirmer la reservation: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -276,7 +303,7 @@ export default function Reservations() {
                   <TableHead>Réservation</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Dates</TableHead>
-               
+
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Montant</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -326,7 +353,7 @@ export default function Reservations() {
                         )}
                       </div>
                     </TableCell>
-                    
+
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -361,15 +388,15 @@ export default function Reservations() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                          // onClick={() => handlePrintInvoice(invoice)}
+                            onClick={() => handleConfirm(reservation.idFacture , reservation.clientId.idClient )}
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Confirmer
                           </DropdownMenuItem>
-                          
+
 
                           <DropdownMenuItem onClick={() => {
-                           navigate(`/reservations/${reservation.clientId.idClient}`,{
+                            navigate(`/reservations/${reservation.clientId.idClient}`, {
                               state: {
                                 date_debut: reservation.dateTravel,
                                 date_fin: reservation.dateReturn,
@@ -378,12 +405,13 @@ export default function Reservations() {
                                 total: reservation.totalPrice,
                                 status: reservation.status,
                               }
-                            })}}>
-                                   
+                            })
+                          }}>
+
                             <Eye className="h-4 w-4 mr-2" />
                             Voir détail
-                          </DropdownMenuItem> 
-{/* 
+                          </DropdownMenuItem>
+                          {/* 
                           <DropdownMenuItem
                           // onClick={() => handleDownloadInvoice(invoice)}
                           >
@@ -405,8 +433,8 @@ export default function Reservations() {
                             <Download className="h-4 w-4 mr-2" />
                             Télécharger
                           </DropdownMenuItem> */}
-                          
-                        
+
+
                           <DropdownMenuSeparator />
 
                           <DropdownMenuItem
@@ -414,7 +442,7 @@ export default function Reservations() {
                               const today = new Date();
                               const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                               const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                              
+
                               // handleDelete(reservation.clientId.idClient, {
                               //   start: firstDay.toISOString().split('T')[0],
                               //   end: lastDay.toISOString().split('T')[0]

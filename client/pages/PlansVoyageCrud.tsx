@@ -41,12 +41,15 @@ import {
   Route,
   Globe,
   Download,
+  CheckCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { travelPlanService } from "@/services/travelPlanService";
+import { reservationService } from "@/services/reservationService";
 import type {
   TravelPlan as SharedTravelPlan,
   ApiResponse,
+  Reservation,
 } from "@shared/types";
 
 // Use the shared TravelPlan type
@@ -157,6 +160,7 @@ export default function PlansVoyageCrud() {
             title: "Circuit Découverte Madagascar - 7 jours",
             clientId: "C001",
             clientName: "Jean Dupont",
+            reservationId: "RES001",
             destination: "Madagascar - Antananarivo et Andasibe",
             startDate: new Date("2024-03-15"),
             endDate: new Date("2024-03-22"),
@@ -166,7 +170,7 @@ export default function PlansVoyageCrud() {
             pricePerPerson: 1680,
             totalPrice: 3360,
             currency: "EUR",
-            status: "confirmed",
+            status: "proposal",
             difficulty: "easy",
             category: "Circuit découverte",
             tags: ["Nature", "Culture", "Famille"],
@@ -350,6 +354,51 @@ export default function PlansVoyageCrud() {
     return `${currencySymbols[currency as keyof typeof currencySymbols]}${amount.toLocaleString()}`;
   };
 
+  // Function to update reservation status from "en_attente" to "confirmé"
+  const updateReservationStatus = async (reservationId: string) => {
+    try {
+      // First, get the current reservation to check its status
+      const reservationResponse = await reservationService.getReservation(reservationId);
+      
+      if (reservationResponse.success && reservationResponse.data) {
+        // Update reservation status from "en_attente" to "confirmed"
+        const updatedReservation: Partial<Reservation> = {
+          status: "confirmed",
+        };
+
+        const response = await reservationService.updateReservation(
+          reservationId,
+          updatedReservation
+        );
+
+        if (response.success) {
+          toast({
+            title: "Succès",
+            description: "Réservation confirmée avec succès",
+          });
+          // Reload plans to get updated data
+          await loadPlans();
+        } else {
+          throw new Error(response.error || "Erreur lors de la confirmation");
+        }
+      } else {
+        // If reservation doesn't exist, we might need to create it
+        toast({
+          title: "Erreur",
+          description: "Réservation non trouvée",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la confirmation de la réservation:", error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de confirmer la réservation: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -516,6 +565,16 @@ export default function PlansVoyageCrud() {
                           <Eye className="w-4 h-4" />
                         </Link>
                       </Button>
+                      {plan.reservationId && plan.status === "proposal" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => updateReservationStatus(plan.reservationId!)}
+                          className="text-green-600"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
