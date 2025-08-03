@@ -24,17 +24,30 @@ interface TravelPlan {
     checkOut: Date;
     guests: number;
   }[];
+  voitures?: {
+    brand: string;
+    model: string;
+    pickupLocation: string;
+    dropoffLocation: string;
+    startDate: Date;
+    endDate: Date;
+    vehicleType: string;
+    price: number;
+  }[];
+
   activites?: {
     name: string;
+    category: string;
     date: Date;
     participants: number;
+    duration: string;
   }[];
 }
 
 export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
   return (
 
-    <div className="space-y-6">
+    <div  className="travel-plan-content space-y-6 max-h-[80vh] overflow-y-auto pr-2">
     <DialogHeader>
       <DialogTitle>Plan de voyage - Réservation {plan.factureId}</DialogTitle>
       <DialogDescription>
@@ -70,7 +83,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
             <span className="font-medium">Vol {index + 1}: {vol.airline}</span>
           </div>
           <div className="mt-2 ml-7">
-            <p>{vol.departure} → {vol.arrival}</p>
+            <p>{vol.departure} ⇆ {vol.arrival}</p>
             <p className="text-sm text-muted-foreground">
               {vol.passengers} passager(s)
             </p>
@@ -86,15 +99,67 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
           </div>
           <div className="mt-2 ml-7">
             <p>
-              {new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} -
-              {new Date(hebergement.checkOut).toLocaleDateString("fr-FR")}
+              {new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} →  {new Date( hebergement.checkOut).toLocaleDateString("fr-FR")}
             </p>
             <p className="text-sm text-muted-foreground">
               {hebergement.location} • {hebergement.guests} personne(s)
             </p>
           </div>
         </div>
+        
       ))}
+
+
+      {/* Voitures */}
+      {plan.voitures?.map((voiture, index) => (
+        <div key={`voiture-${index}`} className="p-4 border rounded-lg">
+          <div className="flex items-center gap-2">
+            <Car className="w-5 h-5 text-orange-500" />
+            <span className="font-medium">
+              Voiture {index + 1} : {voiture.brand} {voiture.model}
+            </span>
+          </div>
+          <div className="mt-2 ml-7">
+            <p>
+              {new Date(voiture.startDate).toLocaleDateString("fr-FR")} →{" "}
+              {new Date(voiture.endDate).toLocaleDateString("fr-FR")}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {voiture.vehicleType} • {voiture.pickupLocation} ⇆ {voiture.dropoffLocation}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Prix total : {voiture.price.toLocaleString("fr-FR")} Ar
+            </p>
+          </div>
+        </div>
+      ))}
+
+      {/* Activités */}
+      {plan.activites?.map((activite, index) => (
+        <div key={`activite-${index}`} className="p-4 border rounded-lg">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-purple-500" />
+            <span className="font-medium">
+              Activité {index + 1} : {activite.name}
+            </span>
+          </div>
+          <div className="mt-2 ml-7">
+            <p>
+              <Calendar className="inline w-4 h-4 mr-1 text-muted-foreground" />
+              {new Date(activite.date).toLocaleDateString("fr-FR")}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Catégorie : {activite.category} • {activite.participants} participant(s)
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Durée : {activite.duration} heure(s)
+            </p>
+          </div>
+        </div>
+      ))}
+
+
+
 
       {/* Ajoutez des sections similaires pour les voitures et activités si nécessaire */}
     </div>

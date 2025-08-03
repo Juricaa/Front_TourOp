@@ -35,7 +35,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     </div>
                     <div className="font-medium">Vol {index + 1}</div>
                     <div className="text-sm text-muted-foreground">
-                      {vol.departure} → {vol.arrival}
+                      {vol.departure} ⇆ {vol.arrival}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {vol.passengers} passager(s)

@@ -18,8 +18,10 @@ import { NotesCard } from "../components/reservation/NotesCard";
 import { ArrowLeft, Download, CheckCircle, Clock, XCircle, Building, Plane } from "lucide-react";
 // import { TravelPlanModal } from "@/components/reservation/TravelPlanModal";
 import { TravelPlanView } from "@/components/reservation/TravelPlanView";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
-export default function ReservationDetail() {
+export default async function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,17 +39,17 @@ export default function ReservationDetail() {
     MGA: 1
   });
   const [isLoadingRates, setIsLoadingRates] = useState(false);
-  
+
   const { toPDF, targetRef } = usePDF({
     filename: `facture-${factureId}.pdf`,
     page: { margin: 20 }
   });
 
   const { toPDF: toPDFPlan, targetRef: planRef } = usePDF({
-    filename: `plan-voyage-${factureId}.pdf`, 
+    filename: `plan-voyage-${factureId}.pdf`,
     page: { margin: 20 }
   });
-  
+
 
   const formatNumberWithSeparators = (num: number) => {
     return new Intl.NumberFormat('fr-FR').format(num);
@@ -113,7 +115,7 @@ export default function ReservationDetail() {
       if (response.ok && data.success) {
         const aggregatedReservation = transformBackendDataToReservation(data.data);
         setReservation(aggregatedReservation);
-
+        console.log("data traité:", aggregatedReservation)
         if (reservationId) {
           fetchClient(reservationId);
         }
@@ -140,7 +142,7 @@ export default function ReservationDetail() {
     const aggregatedReservation: SingleReservation = {
       id: "AGG_" + Date.now().toString(),
       clientId: "C0001",
-      status: "confirmed",
+      status: "en_attente",
       totalPrice: 0,
       currency: "",
       dateCreated: new Date(),
@@ -319,7 +321,7 @@ export default function ReservationDetail() {
 
   const handleExportPlanPDF = () => {
     const toastId = toast.loading('Génération du plan de voyage...');
-    
+
     setTimeout(() => {
       toPDFPlan()
         .then(() => {
@@ -335,6 +337,50 @@ export default function ReservationDetail() {
     }, 100);
   };
 
+  
+  // const handleExportPlanPDF = async () => {
+  //   const toastId = toast.loading('Génération du plan de voyage...');
+    
+  //   try {
+  //     const input = document.getElementById('travel-plan-content');
+  //     if (!input) throw new Error("Élément non trouvé");
+  
+  //     const canvas = await html2canvas(input, {
+  //       scale: 2,
+  //       useCORS: true,
+  //       allowTaint: true,
+  //       logging: true,
+  //     });
+  
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdf = new jsPDF('p', 'mm', 'a4');
+  //     const imgWidth = 210; // A4 width in mm
+  //     const pageHeight = 295; // A4 height in mm
+  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  //     let heightLeft = imgHeight;
+  //     let position = 0;
+  
+  //     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  //     heightLeft -= pageHeight;
+  
+  //     while (heightLeft >= 0) {
+  //       position = heightLeft - imgHeight;
+  //       pdf.addPage();
+  //       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  //       heightLeft -= pageHeight;
+  //     }
+  
+  //     pdf.save(`plan-voyage-${Plane.factureId}.pdf`);
+  //     toast.success('Plan de voyage généré !', { id: toastId });
+  //   } catch (error) {
+  //     console.error("Erreur génération plan", error);
+  //     toast.error('Échec de la génération du plan', {
+  //       id: toastId,
+  //       description: error instanceof Error ? error.message : 'Erreur inconnue'
+  //     });
+  //   }
+  // };
+
 
   const getInvoiceData = (): Invoice | null => {
     if (!reservation || !client) return null;
@@ -344,6 +390,13 @@ export default function ReservationDetail() {
     const convertPrice = (price: number) => price * exchangeRates[selectedCurrency];
 
     const items = [
+      ...(reservation.vols?.map(v => ({
+        id: v.id,
+        description: `Vol: ${v.airline} (${v.departure} ⇆ ${v.arrival})`,
+        quantity: v.passengers,
+        unitPrice: convertPrice(v.price / v.passengers),
+        total: convertPrice(v.price)
+      })) || []),
       ...(reservation.hebergements?.map(h => ({
         id: h.id,
         description: `Hébergement: ${h.name}, (${h.location})`,
@@ -364,14 +417,8 @@ export default function ReservationDetail() {
         quantity: a.participants,
         unitPrice: convertPrice(a.price / a.participants),
         total: convertPrice(a.price)
-      })) || []),
-      ...(reservation.vols?.map(v => ({
-        id: v.id,
-        description: `Vol: ${v.airline} (${v.departure} → ${v.arrival})`,
-        quantity: v.passengers,
-        unitPrice: convertPrice(v.price / v.passengers),
-        total: convertPrice(v.price)
       })) || [])
+
     ];
 
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
@@ -402,11 +449,11 @@ export default function ReservationDetail() {
       console.error("Données manquantes - Client:", client, "Reservation:", reservation);
       return null;
     }
-  
+
     return {
       factureId,
       clientName: client.name,
-      nbPersonne : client.nbpersonnes,
+      nbPersonne: client.nbpersonnes,
       date_debut,
       date_fin,
       vols: reservation.vols?.map(vol => ({
@@ -482,14 +529,14 @@ export default function ReservationDetail() {
         date_fin={date_fin}
         onInvoiceOpen={() => setIsInvoiceOpen(true)}
         onEdit={() => navigate(`/reservations/${reservation.id}/edit`)}
-        onDelete={handleDelete} 
-        // onView={function (type: "invoice" | "plan"): void {
-        //   throw new Error("Function not implemented.");
+        onDelete={handleDelete}
+      // onView={function (type: "invoice" | "plan"): void {
+      //   throw new Error("Function not implemented.");
 
-        // }} 
-        />
+      // }} 
+      />
 
-       
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInfoCard client={client} />
@@ -549,19 +596,19 @@ export default function ReservationDetail() {
 
       <Dialog open={isTravelPlanOpen} onOpenChange={setIsTravelPlanOpen}>
         <DialogContent className="max-w-4xl">
-        <div className="flex justify-end">
-              <Button onClick={handleExportPlanPDF} variant="outline">
-                <Download className="w-4 h-4 mr-2" />
-                Exporter en PDF
-              </Button>
-            </div>
-          
-          
-          
-          <div ref={planRef}>
-          {getTravelPlanData() && <TravelPlanView plan={getTravelPlanData()!} />}
+          <div className="flex justify-end">
+            <Button onClick={handleExportPlanPDF} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Exporter en PDF
+            </Button>
           </div>
-          
+
+
+
+          <div  ref={planRef}> 
+            {getTravelPlanData() && <TravelPlanView plan={getTravelPlanData()!} />}
+          </div>
+
         </DialogContent>
       </Dialog>
     </div>

@@ -155,3 +155,20 @@
   }
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #travel-plan-content, #travel-plan-content * {
+    visibility: visible;
+  }
+  #travel-plan-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+}
+

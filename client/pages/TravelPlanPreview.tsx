@@ -204,8 +204,8 @@ Bon voyage avec TourOp Madagascar !
           </Button>
           <Button variant="outline" onClick={downloadPlan}>
             <Download className="mr-2 h-4 w-4" />
-            Télécharger
-          </Button>
+            Télécharger 
+          </Button> 
           <Button>
             <Send className="mr-2 h-4 w-4" />
             Envoyer

@@ -66,6 +66,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "../lib/utils";
+import html2pdf from 'html2pdf.js';
 
 type TravelPlanStatus =
   | "draft"
@@ -156,12 +157,154 @@ export const PlansVoyage: React.FC = () => {
     alert(`Impression du plan ${plan.planNumber}`);
   };
 
-  const handleDownloadPlan = (plan: TravelPlan) => {
-    alert(`Téléchargement du plan ${plan.planNumber}`);
-  };
+  // const handleDownloadPlan = (plan: TravelPlan) => {
+  //   alert(`Téléchargement du plan ${plan.planNumber}`);
+  // };
 
   const handleSendPlan = (plan: TravelPlan) => {
     alert(`Envoi du plan ${plan.planNumber} à ${plan.clientName}`);
+  };
+
+  const generateTravelPlanDocument = (plan: TravelPlan) => {
+    // Créer un contenu HTML pour le document
+    const content = `
+      <html>
+        <head>
+          <title>${plan.title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; }
+            h1 { color: #2c7a3e; }
+            h2 { color: #2c7a3e; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .info-block { margin-bottom: 15px; }
+            .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+            .included { color: green; }
+            .excluded { color: red; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1>${plan.title}</h1>
+              <p>Pour: ${plan.clientName}</p>
+            </div>
+            <div>
+              <p>Plan N°: ${plan.planNumber}</p>
+              <p>Date: ${new Date().toLocaleDateString('fr-FR')}</p>
+            </div>
+          </div>
+  
+          <div class="info-block">
+            <h2>Informations générales</h2>
+            <p><strong>Destination:</strong> ${plan.destination}</p>
+            <p><strong>Dates:</strong> ${format(new Date(plan.startDate), "dd/MM/yyyy", { locale: fr })} au ${format(new Date(plan.endDate), "dd/MM/yyyy", { locale: fr })} (${plan.duration} jours)</p>
+            <p><strong>Participants:</strong> ${plan.participants} personnes</p>
+            <p><strong>Style:</strong> ${travelStyleLabels[plan.travelStyle as keyof typeof travelStyleLabels]}</p>
+            <p><strong>Difficulté:</strong> ${difficultyLabels[plan.difficulty]}</p>
+            <p><strong>Prix total:</strong> ${plan.totalPrice.toLocaleString()} ${plan.currency}</p>
+            <p><strong>Prix par personne:</strong> ${plan.pricePerPerson.toLocaleString()} ${plan.currency}</p>
+          </div>
+  
+          <div class="info-block">
+            <h2>Services inclus</h2>
+            <ul>
+              ${plan.includes.map(item => `<li class="included">✓ ${item}</li>`).join('')}
+            </ul>
+  
+            <h2>Services non inclus</h2>
+            <ul>
+              ${plan.excludes.map(item => `<li class="excluded">✗ ${item}</li>`).join('')}
+            </ul>
+          </div>
+  
+          <div class="info-block">
+            <h2>Programme détaillé</h2>
+            ${plan.days.map(day => `
+              <div style="margin-bottom: 20px; page-break-inside: avoid;">
+                <h3>Jour ${day.day} - ${day.title}</h3>
+                <p><em>${day.location} - ${format(new Date(day.date), "dd/MM", { locale: fr })}</em></p>
+                <p>${day.description}</p>
+                
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Heure</th>
+                      <th>Activité</th>
+                      <th>Description</th>
+                      <th>Durée</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${day.activities.map(activity => `
+                      <tr>
+                        <td>${activity.time}</td>
+                        <td>${activity.activity}</td>
+                        <td>${activity.description}</td>
+                        <td>${activity.duration}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+  
+                ${day.accommodation ? `
+                  <p><strong>Hébergement:</strong> ${day.accommodation.name} (${day.accommodation.type})</p>
+                ` : ''}
+  
+                <p><strong>Repas inclus:</strong> 
+                  ${[
+                    day.meals.breakfast ? 'Petit-déjeuner' : '',
+                    day.meals.lunch ? 'Déjeuner' : '',
+                    day.meals.dinner ? 'Dîner' : ''
+                  ].filter(Boolean).join(', ')}
+                </p>
+  
+                ${day.notes ? `<p><strong>Notes:</strong> ${day.notes}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+  
+          ${plan.notes ? `
+            <div class="info-block">
+              <h2>Notes supplémentaires</h2>
+              <p>${plan.notes}</p>
+            </div>
+          ` : ''}
+        </body>
+      </html>
+    `;
+  
+    return content;
+  };
+
+
+  const handleDownloadPlan = async (plan: TravelPlan) => {
+    try {
+      // Générer le contenu HTML
+      const content = generateTravelPlanDocument(plan);
+      
+      // Créer un élément div temporaire pour contenir le HTML
+      const element = document.createElement('div');
+      element.innerHTML = content;
+      
+      // Options de configuration du PDF
+      const opt = {
+        margin: 10,
+        filename: `Plan_Voyage_${plan.planNumber}_${plan.clientName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+  
+      // Générer et télécharger le PDF
+      await html2pdf().set(opt).from(element).save();
+      
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF:', error);
+      alert('Une erreur est survenue lors de la génération du PDF');
+    }
   };
 
   return (
@@ -727,7 +870,7 @@ const TravelPlanView: React.FC<TravelPlanViewProps> = ({ plan }) => {
       <DialogHeader>
         <DialogTitle className="text-xl">{plan.title}</DialogTitle>
         <DialogDescription>
-          Plan de voyage détaillé pour {plan.clientName} dede
+          Plan de voyage détaillé pour {plan.clientName}
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-6">
@@ -832,7 +975,7 @@ const TravelPlanView: React.FC<TravelPlanViewProps> = ({ plan }) => {
         {/* Programme jour par jour */}
         <Card>
           <CardHeader>
-            <CardTitle>Programme jour par jour</CardTitle>
+            <CardTitle>Programme jour par jour </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4 max-h-96 overflow-y-auto">
