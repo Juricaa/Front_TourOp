@@ -424,6 +424,16 @@ export default function ReservationDetail() {
         checkOut: heb.checkOut,
         guests: heb.guests
       })),
+      voitures: reservation.voitures?.map(voiture => ({
+        brand: voiture.brand,
+        model: voiture.model,
+        pickupLocation: voiture.pickupLocation,
+        dropoffLocation: voiture.dropoffLocation,
+        startDate: voiture.startDate,
+        endDate: voiture.endDate,
+        vehicleType: voiture.vehicleType,
+        price: voiture.price,
+      })),
       activites: reservation.activites?.map(act => ({
         name: act.name,
         date: act.date,
