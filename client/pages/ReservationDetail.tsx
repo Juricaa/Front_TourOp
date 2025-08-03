@@ -21,7 +21,7 @@ import { TravelPlanView } from "@/components/reservation/TravelPlanView";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export default async function ReservationDetail() {
+export default function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -336,51 +336,6 @@ export default async function ReservationDetail() {
         });
     }, 100);
   };
-
-  
-  // const handleExportPlanPDF = async () => {
-  //   const toastId = toast.loading('Génération du plan de voyage...');
-    
-  //   try {
-  //     const input = document.getElementById('travel-plan-content');
-  //     if (!input) throw new Error("Élément non trouvé");
-  
-  //     const canvas = await html2canvas(input, {
-  //       scale: 2,
-  //       useCORS: true,
-  //       allowTaint: true,
-  //       logging: true,
-  //     });
-  
-  //     const imgData = canvas.toDataURL('image/png');
-  //     const pdf = new jsPDF('p', 'mm', 'a4');
-  //     const imgWidth = 210; // A4 width in mm
-  //     const pageHeight = 295; // A4 height in mm
-  //     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  //     let heightLeft = imgHeight;
-  //     let position = 0;
-  
-  //     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-  //     heightLeft -= pageHeight;
-  
-  //     while (heightLeft >= 0) {
-  //       position = heightLeft - imgHeight;
-  //       pdf.addPage();
-  //       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-  //       heightLeft -= pageHeight;
-  //     }
-  
-  //     pdf.save(`plan-voyage-${Plane.factureId}.pdf`);
-  //     toast.success('Plan de voyage généré !', { id: toastId });
-  //   } catch (error) {
-  //     console.error("Erreur génération plan", error);
-  //     toast.error('Échec de la génération du plan', {
-  //       id: toastId,
-  //       description: error instanceof Error ? error.message : 'Erreur inconnue'
-  //     });
-  //   }
-  // };
-
 
   const getInvoiceData = (): Invoice | null => {
     if (!reservation || !client) return null;
