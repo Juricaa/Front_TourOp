@@ -96,7 +96,7 @@ export default function Reservations() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "confirmé":
         return "Confirmée";
       case "pending":
         return "En attente";

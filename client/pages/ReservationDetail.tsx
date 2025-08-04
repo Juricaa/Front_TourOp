@@ -113,6 +113,7 @@ export default function ReservationDetail() {
       const response = await fetch(url.toString());
       const data = await response.json();
       if (response.ok && data.success) {
+        console.log("donnée vierge:", data.data)
         const aggregatedReservation = transformBackendDataToReservation(data.data);
         setReservation(aggregatedReservation);
         console.log("data traité:", aggregatedReservation)
@@ -138,11 +139,24 @@ export default function ReservationDetail() {
     }
   };
 
+  const fetchClient = async (clientId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/clients/${clientId}`);
+      const data = await response.json();
+      if (data.success) {
+        setClient(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching client:", error);
+    }
+  };
+
   const transformBackendDataToReservation = (backendData: any[]): SingleReservation => {
+    
     const aggregatedReservation: SingleReservation = {
       id: "AGG_" + Date.now().toString(),
-      clientId: "C0001",
-      status: "en_attente",
+      clientId: "",
+      status: "",
       totalPrice: 0,
       currency: "",
       dateCreated: new Date(),
@@ -231,23 +245,13 @@ export default function ReservationDetail() {
     return aggregatedReservation;
   };
 
-  const fetchClient = async (clientId: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/clients/${clientId}`);
-      const data = await response.json();
-      if (data.success) {
-        setClient(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching client:", error);
-    }
-  };
+  
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "confirmé":
         return "bg-forest-100 text-forest-800 border-forest-200";
-      case "pending":
+      case "en_attente":
         return "bg-sunset-100 text-sunset-800 border-sunset-200";
       case "cancelled":
         return "bg-destructive/10 text-destructive border-destructive/20";
@@ -260,7 +264,7 @@ export default function ReservationDetail() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "confirmé":
         return "Confirmée";
       case "pending":
         return "En attente";
@@ -275,9 +279,9 @@ export default function ReservationDetail() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "confirmé":
         return CheckCircle;
-      case "pending":
+      case "en_attente":
         return Clock;
       case "cancelled":
         return XCircle;
@@ -478,7 +482,8 @@ export default function ReservationDetail() {
     );
   }
 
-  const StatusIcon = getStatusIcon(reservation.status);
+  const StatusIcon = getStatusIcon(status);
+  console.log (reservation.status)
 
   return (
     <div className="p-6 space-y-6">

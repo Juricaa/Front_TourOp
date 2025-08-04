@@ -237,7 +237,7 @@ export interface Reservation {
 export interface SingleReservation {
   id: string;
   clientId: string;
-  status: "en_attente" | "confirmed" | "cancelled" | "completed";
+  status: "en_attente" | "confirmé" | "cancelled" | "completed";
   totalPrice: number;
   currency: "Ar" | "EUR" | "USD";
   dateCreated: Date;
