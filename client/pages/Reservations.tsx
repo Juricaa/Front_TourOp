@@ -39,7 +39,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Reservation } from "@shared/types";
+import type { Invoice } from "@shared/types";
 import { factureService } from "@/services/factureService";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -54,7 +54,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Reservations() {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -187,7 +187,6 @@ export default function Reservations() {
 
   const handleConfirm = async (invoiceId: string, id: string) => {
     try {
-      // Update the invoice status to "paid" (as a confirmation)
       const updatedData = {
         clientId: id,
         status: "confirmé",
@@ -205,6 +204,37 @@ export default function Reservations() {
       toast({
         title: "Erreur",
         description: `Impossible de confirmer la reservation: ${
+          error instanceof Error ? error.message : "Erreur inconnue"
+        }`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateStatus = async (invoiceId: string, newStatus: string) => {
+    try {
+      const statusMap: { [key: string]: "paid" | "sent" | "draft" | "cancelled" | "overdue" } = {
+        "active": "paid",
+        "confirmé": "paid",
+        "en_attente": "sent"
+      };
+
+      const updatedData = {
+        status: statusMap[newStatus] || "sent",
+      };
+
+      const response = await factureService.updateFacture(invoiceId, updatedData);
+      fetchReservations();
+
+      toast({
+        title: "Succès",
+        description: `Statut mis à jour: ${newStatus}`,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour:", error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de mettre à jour le statut: ${
           error instanceof Error ? error.message : "Erreur inconnue"
         }`,
         variant: "destructive",
@@ -407,17 +437,32 @@ export default function Reservations() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleConfirm(
-                                reservation.idFacture,
-                                reservation.clientId.idClient
-                              )
-                            }
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Confirmer
-                          </DropdownMenuItem>
+                          {reservation.status === "en_attente" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleConfirm(
+                                  reservation.idFacture,
+                                  reservation.clientId.idClient
+                                )
+                              }
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Confirmer
+                            </DropdownMenuItem>
+                          )}
+                          {reservation.status === "confirmé" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateStatus(
+                                  reservation.idFacture,
+                                  "active"
+                                )
+                              }
+                            >
+                              <Route className="h-4 w-4 mr-2" />
+                              Activer
+                            </DropdownMenuItem>
+                          )}
 
                           <DropdownMenuItem
                             onClick={() => {
