@@ -143,10 +143,11 @@ class FactureService {
           }
         }
 
-  async deleteFacture(id: string, params?: { date_debut?: string; date_fin?: string }): Promise<{ success: boolean; message?: string; deleted_count?: number }> {
+  async deleteFacture(id: string, params?: { date_debut?: Date; date_fin?: Date ; factureId? : string}): Promise<{ success: boolean; message?: string; deleted_count?: number }> {
     try {
-        let url = `${API_BASE_URL}/clients/${id}/reservations/?date_debut=${params.date_debut}&date_fin=${params.date_fin}`;
+        let url = `${API_BASE_URL}/reservations/client/${id}/reservations/?date_debut=${params.date_debut}&date_fin=${params.date_fin}`;
         
+        let url2 = `${API_BASE_URL}/factures/${params.factureId}/`;
 
         const response = await fetch(url, {
             method: "DELETE",
@@ -157,8 +158,16 @@ class FactureService {
         });
 
         const data = await response.json();
+        
+        const response2 = await fetch(url2, {
+          method: "DELETE",
+          headers: {
+              'Content-Type': 'application/json',
+              // Ajoutez ici vos headers d'authentification si nécessaire
+          },
+      });
 
-        if (!response.ok) {
+        if (!response.ok && !response2.ok) {
             throw new Error(data.message || "Erreur lors de la suppression");
         }
 

@@ -77,7 +77,7 @@ export const ReservationHeader: React.FC<ReservationHeaderProps> = ({
           <Edit className="w-4 h-4 mr-2" />
           Modifier
         </Button>
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           onClick={onDelete}
@@ -85,7 +85,7 @@ export const ReservationHeader: React.FC<ReservationHeaderProps> = ({
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Supprimer
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ interface TravelPlan {
     checkIn: Date;
     checkOut: Date;
     guests: number;
+    capacity : number;
   }[];
   
   voitures?: {
@@ -105,7 +106,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
               {new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} →  {new Date( hebergement.checkOut).toLocaleDateString("fr-FR")}
             </p>
             <p className="text-sm text-muted-foreground">
-              {hebergement.location} • {hebergement.guests} personne(s)
+              {hebergement.location} • {hebergement.capacity} personne(s)
             </p>
           </div>
         </div>
@@ -130,9 +131,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
             <p className="text-sm text-muted-foreground">
               {voiture.vehicleType} • {voiture.pickupLocation} ⇆ {voiture.dropoffLocation}
             </p>
-            <p className="text-sm text-muted-foreground">
-              Prix total : {voiture.price.toLocaleString("fr-FR")} Ar
-            </p>
+            
           </div>
         </div>
       ))}

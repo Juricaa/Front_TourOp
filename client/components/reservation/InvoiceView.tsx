@@ -76,7 +76,7 @@ import {
           <DialogDescription >
             Date : {format(new Date(invoice.date_created), "dd/MM/yyyy", { locale: fr })}  <br />
             Détails de la facture pour {invoice.clientName} <br />
-            le {format(new Date(invoice.travelStartDate), "dd/MM/yyyy", { locale: fr })} et {format(new Date(invoice.travelEndDate), "dd/MM/yyyy", { locale: fr })}
+            le {format(new Date(invoice.travelStartDate), "dd/MM/yyyy", { locale: fr })} à {format(new Date(invoice.travelEndDate), "dd/MM/yyyy", { locale: fr })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">

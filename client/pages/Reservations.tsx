@@ -42,15 +42,32 @@ import { Link, useNavigate } from "react-router-dom";
 import type { Reservation } from "@shared/types";
 import { factureService } from "@/services/factureService";
 import { toast } from "@/hooks/use-toast";
-
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export default function Reservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const [dateRange, setDateRange] = useState(null)
+  const [dateRange, setDateRange] = useState(null);
 
+  // State for delete confirmation dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [reservationToDelete, setReservationToDelete] = useState<{
+    id: string;
+    start: Date;
+    end: Date;
+    factureId: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchReservations();
@@ -61,9 +78,8 @@ export default function Reservations() {
       const response = await factureService.getFactures();
 
       if (response.success && response.data) {
-
         setReservations(response.data);
-        console.log (reservations)
+        console.log(reservations);
       }
     } catch (error) {
       console.error("Error fetching reservations:", error);
@@ -96,7 +112,7 @@ export default function Reservations() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "confirmé": 
+      case "confirmé":
         return "Confirmée";
       case "pending":
         return "En attente";
@@ -110,7 +126,7 @@ export default function Reservations() {
   };
 
   const filteredReservations = reservations.filter((reservation) =>
-    reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase()),
+    reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -129,15 +145,20 @@ export default function Reservations() {
     );
   }
 
-
-  const handleDelete = async (id: string, isPeriodDelete = false, period?: { start: string; end: string }) => {
+  const handleDelete = async (
+    id: string,
+    start: Date,
+    end: Date,
+    factureId: string
+  ) => {
     try {
       let response;
 
-      if (isPeriodDelete && period) {
+      if (id) {
         response = await factureService.deleteFacture(id, {
-          date_debut: period.start,
-          date_fin: period.end
+          date_debut: start,
+          date_fin: end,
+          factureId,
         });
       } else {
         response = await factureService.deleteFacture(id);
@@ -146,9 +167,7 @@ export default function Reservations() {
       if (response.success) {
         toast({
           title: "Succès",
-          description: isPeriodDelete
-            ? `${response.deleted_count || 'Toutes'} réservation(s) supprimée(s) pour cette période`
-            : "Réservation supprimée avec succès",
+          description: "Réservation supprimée avec succès",
         });
         await fetchReservations();
       } else {
@@ -158,19 +177,20 @@ export default function Reservations() {
       console.error("Erreur lors de la suppression:", error);
       toast({
         title: "Erreur",
-        description: `Impossible de supprimer: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        description: `Impossible de supprimer: ${
+          error instanceof Error ? error.message : "Erreur inconnue"
+        }`,
         variant: "destructive",
       });
     }
   };
 
-  const handleConfirm = async (invoiceId: string , id : string ) => {
+  const handleConfirm = async (invoiceId: string, id: string) => {
     try {
       // Update the invoice status to "paid" (as a confirmation)
       const updatedData = {
         clientId: id,
         status: "confirmé",
-
       };
 
       const response = await factureService.updateFacture(invoiceId, updatedData);
@@ -184,7 +204,9 @@ export default function Reservations() {
       console.error("Erreur lors de la confirmation:", error);
       toast({
         title: "Erreur",
-        description: `Impossible de confirmer la reservation: ${error instanceof Error ? error.message : "Erreur inconnue"}`,
+        description: `Impossible de confirmer la reservation: ${
+          error instanceof Error ? error.message : "Erreur inconnue"
+        }`,
         variant: "destructive",
       });
     }
@@ -235,7 +257,7 @@ export default function Reservations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-forest-600">
-              {reservations.filter((r) => r.status === "confirmed").length}
+              {reservations.filter((r) => r.status === "confirmé").length}
             </div>
             <p className="text-xs text-muted-foreground">Prêtes à partir</p>
           </CardContent>
@@ -263,9 +285,12 @@ export default function Reservations() {
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold text-foreground">
-              {/* {console.log('totale vola:', reservations.reduce((sum, r) => sum + r.totalPrice, 0)), */
-                formatCurrency(reservations.reduce((sum, r) => sum + parseFloat(r.totalPrice), 0),
-                )}{" "}
+              {formatCurrency(
+                reservations.reduce(
+                  (sum, r) => sum + parseFloat(r.totalPrice),
+                  0
+                )
+              )}{" "}
               Ar
             </div>
             <p className="text-xs text-muted-foreground">Total réservations</p>
@@ -320,7 +345,7 @@ export default function Reservations() {
                         <div className="text-sm text-muted-foreground">
                           Créée le{" "}
                           {new Date(reservation.dateCreated).toLocaleDateString(
-                            "fr-FR",
+                            "fr-FR"
                           )}
                         </div>
                       </div>
@@ -339,7 +364,7 @@ export default function Reservations() {
                           <Calendar className="h-3 w-3 text-muted-foreground" />
                           <span>
                             {new Date(
-                              reservation.dateTravel,
+                              reservation.dateTravel
                             ).toLocaleDateString("fr-FR")}
                           </span>
                         </div>
@@ -347,7 +372,7 @@ export default function Reservations() {
                           <div className="text-sm text-muted-foreground">
                             au{" "}
                             {new Date(
-                              reservation.dateReturn,
+                              reservation.dateReturn
                             ).toLocaleDateString("fr-FR")}
                           </div>
                         )}
@@ -373,14 +398,9 @@ export default function Reservations() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {/* <ReservationActions reservation={reservation} /> */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -388,71 +408,51 @@ export default function Reservations() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleConfirm(reservation.idFacture , reservation.clientId.idClient )}
+                            onClick={() =>
+                              handleConfirm(
+                                reservation.idFacture,
+                                reservation.clientId.idClient
+                              )
+                            }
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Confirmer
                           </DropdownMenuItem>
 
-
-                          <DropdownMenuItem onClick={() => {
-                            navigate(`/reservations/${reservation.clientId.idClient}`, {
-                              state: {
-                                date_debut: reservation.dateTravel,
-                                date_fin: reservation.dateReturn,
-                                date_created: reservation.dateCreated,
-                                factureId: reservation.idFacture,
-                                total: reservation.totalPrice,
-                                status: reservation.status,
-                              }
-                            })
-                          }}>
-
+                          <DropdownMenuItem
+                            onClick={() => {
+                              navigate(`/reservations/${reservation.clientId.idClient}`, {
+                                state: {
+                                  date_debut: reservation.dateTravel,
+                                  date_fin: reservation.dateReturn,
+                                  date_created: reservation.dateCreated,
+                                  factureId: reservation.idFacture,
+                                  total: reservation.totalPrice,
+                                  status: reservation.status,
+                                },
+                              });
+                            }}
+                          >
                             <Eye className="h-4 w-4 mr-2" />
                             Voir détail
                           </DropdownMenuItem>
-                          {/* 
-                          <DropdownMenuItem
-                          // onClick={() => handleDownloadInvoice(invoice)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Reservation
-                          </DropdownMenuItem> */}
-
-
-
-                          {/* <DropdownMenuItem
-                          // onClick={() => handlePrintInvoice(invoice)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Modifier
-                          </DropdownMenuItem> */}
-                          {/* <DropdownMenuItem
-                          // onClick={() => handleDownloadInvoice(invoice)}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Télécharger
-                          </DropdownMenuItem> */}
-
-
-                          <DropdownMenuSeparator />
-
                           <DropdownMenuItem
                             onClick={() => {
-                              const today = new Date();
-                              const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                              const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-                              // handleDelete(reservation.clientId.idClient, {
-                              //   start: firstDay.toISOString().split('T')[0],
-                              //   end: lastDay.toISOString().split('T')[0]
-                              // });
+                              setReservationToDelete({
+                                id: reservation.clientId.idClient,
+                                start: reservation.dateTravel,
+                                end: reservation.dateReturn,
+                                factureId: reservation.idFacture,
+                              });
+                              setIsDeleteDialogOpen(true);
                             }}
                             className="text-red-600"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Supprimer
                           </DropdownMenuItem>
+
+                          <DropdownMenuSeparator />
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -487,6 +487,44 @@ export default function Reservations() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Action</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir valider cette suppression
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setReservationToDelete(null);
+              }}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (reservationToDelete) {
+                  handleDelete(
+                    reservationToDelete.id,
+                    reservationToDelete.start,
+                    reservationToDelete.end,
+                    reservationToDelete.factureId
+                  );
+                }
+                setIsDeleteDialogOpen(false);
+                setReservationToDelete(null);
+              }}
+            >
+              Valider
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

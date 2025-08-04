@@ -188,7 +188,7 @@ export const normalizeVol = (vol: any): Vol => ({
 export interface Reservation {
   id: string;
   clientId: string;
-  status: "en_attente" | "confirmed" | "cancelled" | "completed";
+  status: "en_attente" | "confirmé" | "cancelled" | "completed";
   totalPrice: number;
   currency: "Ar" | "EUR" | "USD";
   dateCreated: Date;
