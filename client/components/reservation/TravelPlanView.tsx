@@ -54,180 +54,175 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
     const content = `
       <html>
         <head>
-          <title>Plan de voyage - Réservation ${plan.factureId}</title>
+          <title>Plan de voyage - ${plan.factureId}</title>
           <style>
-            body { 
-              font-family: Arial, sans-serif; 
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               line-height: 1.6;
-              padding: 20px;
               color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
             }
-            h1, h2, h3 { 
-              color: #2c7a3e;
-              margin-top: 20px;
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #2c7a3e;
+              padding-bottom: 15px;
             }
-            .header { 
-              display: flex; 
-              justify-content: space-between; 
-              margin-bottom: 20px; 
-            }
-            .info-grid {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 16px;
-              padding: 16px 0;
-              border-top: 1px solid #eee;
-              border-bottom: 1px solid #eee;
-            }
-            .info-label {
-              font-size: 14px;
-              color: #666;
-              margin-bottom: 4px;
-            }
-            .info-value {
-              font-weight: 500;
+            .item-section {
+              margin-bottom: 30px;
             }
             .item-card {
-              padding: 16px;
-              border: 1px solid #ddd;
-              border-radius: 8px;
-              background-color: #f9f9f9;
-              margin-bottom: 12px;
+              margin-bottom: 25px;
+              padding-bottom: 15px;
+              border-bottom: 1px dashed #ccc;
             }
-            .item-header {
+            .item-title {
+              font-size: 18px;
+              font-weight: 600;
+              color: #2c7a3e;
+              margin-bottom: 5px;
               display: flex;
               align-items: center;
               gap: 8px;
-              margin-bottom: 8px;
             }
-            .item-icon {
+            .item-content {
+              margin-left: 28px;
+              margin-top: 8px;
+            }
+            .route {
+              font-size: 16px;
+              margin: 8px 0;
+              display: flex;
+              align-items: center;
+              gap: 5px;
+            }
+            .details {
+              font-size: 14px;
+              color: #666;
+              margin-top: 5px;
+            }
+            .divider {
+              height: 1px;
+              background-color: #eee;
+              margin: 15px 0;
+            }
+            .icon {
               width: 20px;
               height: 20px;
             }
-            .item-details {
-              margin-left: 28px;
-            }
-            .text-muted {
-              font-size: 14px;
-              color: #666;
-            }
-            .blue { color: #3b82f6; }
-            .green { color: #10b981; }
-            .orange { color: #f97316; }
-            .purple { color: #8b5cf6; }
           </style>
         </head>
         <body>
           <div class="header">
-            <div>
-              <h1>Plan de voyage - Réservation ${plan.factureId}</h1>
-              <p>Itinéraire détaillé pour ${plan.clientName}</p>
-            </div>
-          </div>
-          
-          <div class="info-grid">
-            <div>
-              <p class="info-label">Période</p>
-              <p class="info-value">
+            <h1>Plan de Voyage - Réservation ${plan.factureId}</h1>
+            <p>Itinéraire pour ${plan.clientName}</p>
+
+ <p class="info-value"> Période 
                 ${new Date(plan.date_debut).toLocaleDateString("fr-FR")}
                 ${plan.date_fin ? ` - ${new Date(plan.date_fin).toLocaleDateString("fr-FR")}` : ''}
-              </p>
-            </div>
-            <div>
-              <p class="info-label">Client</p>
-              <p class="info-value">${plan.clientName}</p>
-            </div>
-            <div>
-              <p class="info-label">Participants</p>
-              <p class="info-value">${plan.nbPersonne} personne(s)</p>
-            </div>
-          </div>
+              </p>            </div>
   
-          <div class="content-section">
-            <h2>Itinéraire</h2>
-            
+          <div class="item-section">
+            <h2>Vols</h2>
             ${plan.vols?.map((vol, index) => `
               <div class="item-card">
-                <div class="item-header">
-                  <svg class="item-icon blue" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <div class="item-title">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
-                  <span class="font-medium">Vol ${index + 1}: ${vol.airline}</span>
+                  Vol ${index + 1}: ${vol.airline}
                 </div>
-                <div class="item-details">
-                  <p>${vol.departure} ⇆ ${vol.arrival}</p>
-                  <p class="text-muted">
+                <div class="item-content">
+                  <div class="route">
+                    ${vol.departure} 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                    ${vol.arrival}
+                  </div>
+                  <div class="details">
                     ${vol.passengers} passager(s)
-                  </p>
+                  </div>
                 </div>
               </div>
             `).join('')}
+          </div>
   
+          <div class="item-section">
+            <h2>Hébergements</h2>
             ${plan.hebergements?.map((hebergement, index) => `
               <div class="item-card">
-                <div class="item-header">
-                  <svg class="item-icon green" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <div class="item-title">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <span class="font-medium">Hébergement ${index + 1}: ${hebergement.name}</span>
+                  Hébergement ${index + 1}: ${hebergement.name}
                 </div>
-                <div class="item-details">
-                  <p>
+                <div class="item-content">
+                  <div class="route">
                     ${new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} → ${new Date(hebergement.checkOut).toLocaleDateString("fr-FR")}
-                  </p>
-                  <p class="text-muted">
+                  </div>
+                  <div class="details">
                     ${hebergement.location} • Capacité: ${hebergement.capacity} personne(s)
-                  </p>
+                  </div>
                 </div>
               </div>
             `).join('')}
+          </div>
   
+          ${plan.voitures?.length > 0 ? `
+          <div class="item-section">
+            <h2>Locations de voiture</h2>
             ${plan.voitures?.map((voiture, index) => `
               <div class="item-card">
-                <div class="item-header">
-                  <svg class="item-icon orange" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <div class="item-title">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
-                  <span class="font-medium">
-                    Voiture ${index + 1}: ${voiture.brand} ${voiture.model}
-                  </span>
+                  Voiture ${index + 1}: ${voiture.brand} ${voiture.model}
                 </div>
-                <div class="item-details">
-                  <p>
+                <div class="item-content">
+                  <div class="route">
                     ${new Date(voiture.startDate).toLocaleDateString("fr-FR")} → ${new Date(voiture.endDate).toLocaleDateString("fr-FR")}
-                  </p>
-                  <p class="text-muted">
-                    ${voiture.vehicleType} • ${voiture.pickupLocation} ⇆ ${voiture.dropoffLocation}
-                  </p>
+                  </div>
+                  <div class="details">
+                    ${voiture.vehicleType} • ${voiture.pickupLocation} → ${voiture.dropoffLocation}
+                  </div>
                 </div>
               </div>
             `).join('')}
+          </div>
+          ` : ''}
   
+          ${plan.activites?.length > 0 ? `
+          <div class="item-section">
+            <h2>Activités</h2>
             ${plan.activites?.map((activite, index) => `
               <div class="item-card">
-                <div class="item-header">
-                  <svg class="item-icon purple" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <div class="item-title">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span class="font-medium">
-                    Activité ${index + 1}: ${activite.name}
-                  </span>
+                  Activité ${index + 1}: ${activite.name}
                 </div>
-                <div class="item-details">
-                  <p>
+                <div class="item-content">
+                  <div class="route">
                     ${new Date(activite.date).toLocaleDateString("fr-FR")}
-                  </p>
-                  <p class="text-muted">
+                  </div>
+                  <div class="details">
                     Catégorie: ${activite.category} • ${activite.participants} participant(s)
-                  </p>
-                  <p class="text-muted">
+                  </div>
+                  <div class="details">
                     Durée: ${activite.duration} heure(s)
-                  </p>
+                  </div>
                 </div>
               </div>
             `).join('')}
           </div>
+          ` : ''}
         </body>
       </html>
     `;
