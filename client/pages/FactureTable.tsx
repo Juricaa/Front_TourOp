@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { MoreHorizontal, Eye, Printer, Download, CheckCircle, Trash2, Send } from 'lucide-react';
