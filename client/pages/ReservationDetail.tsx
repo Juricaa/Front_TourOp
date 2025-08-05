@@ -20,6 +20,7 @@ import { ArrowLeft, Download, CheckCircle, Clock, XCircle, Building, Plane, Prin
 import { TravelPlanView } from "@/components/reservation/TravelPlanView";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { duration } from "html2canvas/dist/types/css/property-descriptors/duration";
 
 export default function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -441,8 +442,8 @@ export default function ReservationDetail() {
       activites: reservation.activites?.map(act => ({
         name: act.name,
         date: act.date,
-        participants: act.participants
-      }))
+        participants: act.participants,
+        duration:act.duration    }))
     };
   };
 

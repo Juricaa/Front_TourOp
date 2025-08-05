@@ -217,7 +217,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
                     Catégorie: ${activite.category} • ${activite.participants} participant(s)
                   </div>
                   <div class="details">
-                    Durée: ${activite.duration} heure(s)
+                    Durée: ${activite.duration} 
                   </div>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
                   Catégorie: {activite.category} • {activite.participants} participant(s)
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Durée: {activite.duration} heure(s)
+                  Durée: {activite.duration} 
                 </p>
               </div>
             </div>

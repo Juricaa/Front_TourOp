@@ -156,7 +156,7 @@ export default function ClientStep() {
                       </div>
                       {client.lastVisit && (
                         <div className="text-xs text-forest-600">
-                          Dernière visite: {client.lastVisit}
+                          Dernière reservation: {client.lastVisit}
                         </div>
                       )}
                     </div>
