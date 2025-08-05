@@ -289,6 +289,8 @@ export interface SingleReservation {
     flightNumber: string;
     departure: string;
     arrival: string;
+    date_debut: Date;
+    date_fin: Date;
   }[];
 
   createdAt: Date;

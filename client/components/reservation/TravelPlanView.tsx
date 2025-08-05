@@ -19,6 +19,8 @@ interface TravelPlan {
     departure: string;
     arrival: string;
     passengers: number;
+    date_debut: Date;
+    date_fin: Date;
   }[];
   hebergements?: {
     name: string;
@@ -126,21 +128,19 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
               </p>            </div>
   
           <div class="item-section">
-            <h2>Vols</h2>
+            <h2>✈️ Vols</h2>
             ${plan.vols?.map((vol, index) => `
               <div class="item-card">
                 <div class="item-title">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  Vol ${index + 1}: ${vol.airline}
+                 
+                 ${index + 1}. ${vol.airline}
                 </div>
                 <div class="item-content">
                   <div class="route">
                     ${vol.departure} 
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
+                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
                     ${vol.arrival}
                   </div>
                   <div class="details">
@@ -152,14 +152,12 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
           </div>
   
           <div class="item-section">
-            <h2>Hébergements</h2>
+            <h2>🏡Hébergements</h2>
             ${plan.hebergements?.map((hebergement, index) => `
               <div class="item-card">
                 <div class="item-title">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  Hébergement ${index + 1}: ${hebergement.name}
+                 
+                  ${index + 1}. ${hebergement.name}
                 </div>
                 <div class="item-content">
                   <div class="route">
@@ -175,14 +173,11 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
   
           ${plan.voitures?.length > 0 ? `
           <div class="item-section">
-            <h2>Locations de voiture</h2>
+            <h2>🚐Locations de voiture</h2>
             ${plan.voitures?.map((voiture, index) => `
               <div class="item-card">
                 <div class="item-title">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  Voiture ${index + 1}: ${voiture.brand} ${voiture.model}
+                  ${index + 1}. ${voiture.brand} ${voiture.model}
                 </div>
                 <div class="item-content">
                   <div class="route">
@@ -207,7 +202,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  Activité ${index + 1}: ${activite.name}
+                  ${index + 1}. ${activite.name}
                 </div>
                 <div class="item-content">
                   <div class="route">
@@ -309,7 +304,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
               <div className="mt-2 ml-7">
                 <p>{vol.departure} ⇆ {vol.arrival}</p>
                 <p className="text-sm text-muted-foreground">
-                  {vol.passengers} passager(s)
+                  {vol.passengers} passager(s) . Depart le {new Date(vol.date_debut).toLocaleDateString("fr-FR")} - retour : {new Date(vol.date_fin).toLocaleDateString("fr-FR")}
                 </p>
               </div>
             </div>

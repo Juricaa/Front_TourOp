@@ -237,7 +237,9 @@ export default function ReservationDetail() {
             airline: item.item.airline,
             flightNumber: item.item.flightNumber,
             departure: item.lieu_depart,
-            arrival: item.lieu_arrivee
+            arrival: item.lieu_arrivee,
+            startDate: startDate,
+            endDate: endDate,
           });
           break;
       }
@@ -420,7 +422,9 @@ export default function ReservationDetail() {
         airline: vol.airline,
         departure: vol.departure,
         arrival: vol.arrival,
-        passengers: vol.passengers
+        passengers: vol.passengers,
+        date_debut : vol.startDate,
+        date_fin : vol.endDate,
       })),
       hebergements: reservation.hebergements?.map(heb => ({
         name: heb.name,
@@ -443,7 +447,9 @@ export default function ReservationDetail() {
         name: act.name,
         date: act.date,
         participants: act.participants,
-        duration:act.duration    }))
+        duration:act.duration,
+      
+      }))
     };
   };
 
