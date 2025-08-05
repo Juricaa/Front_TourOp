@@ -15,7 +15,7 @@ import { TravelDatesCard } from "../components/reservation/TravelDatesCard";
 import { ServicesSection } from "../components/reservation/ServicesSection";
 import { SummaryCard } from "../components/reservation/SummaryCard";
 import { NotesCard } from "../components/reservation/NotesCard";
-import { ArrowLeft, Download, CheckCircle, Clock, XCircle, Building, Plane } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, Clock, XCircle, Building, Plane, Printer } from "lucide-react";
 // import { TravelPlanModal } from "@/components/reservation/TravelPlanModal";
 import { TravelPlanView } from "@/components/reservation/TravelPlanView";
 import html2canvas from "html2canvas";
