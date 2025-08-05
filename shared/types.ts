@@ -345,7 +345,7 @@ export interface Invoice {
   totalAmount: number;
   totalPrice : string;
   paidAmount: number;
-  status: "confirmé" | "sent" | "paid" | "overdue" | "annulé";
+  status: "confirmé" | "sent" | "paid" | "en_attente" | "annulé";
   paymentMethod?: "cash" | "card" | "transfer" | "mobile";
   paymentDate?: Date;
 

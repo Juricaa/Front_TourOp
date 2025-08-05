@@ -23,13 +23,13 @@ const statusColors = {
 const statusLabels = {
   'confirmé': 'Confirmé',
   'annulé': 'Annulé',
-  'en attente': 'En attente',
+  'en_attente': 'En attente',
 };
 
 export function FactureTable() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('confirmé');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +86,7 @@ export function FactureTable() {
   const handlePrint = (invoice: Invoice) => console.log('Imprimer', invoice);
   const handleDownload = (invoice: Invoice) => console.log('Télécharger', invoice);
   const handleSend = (id: string) => console.log('Envoyer', id);
-  const handleMarkAsPaid = (id: string) => console.log('Payée', id);
+  const handleActive = (id: string) => console.log('Payée', id);
   const handleDelete = (id: string) => console.log('Supprimer', id);
 
   if (error) {
@@ -172,8 +172,8 @@ export function FactureTable() {
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
             <SelectItem value="confirmé">Confirmé</SelectItem>
+            <SelectItem value="all">Tous les statuts</SelectItem>
             <SelectItem value="en attente">En attente</SelectItem>
             <SelectItem value="annulé">Annulé</SelectItem>
           </SelectContent>
@@ -235,7 +235,7 @@ export function FactureTable() {
                         <DropdownMenuItem onClick={() => handleDownload(invoice)}><Download className="h-4 w-4 mr-2" /> Télécharger</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleSend(invoice.idFacture)}><Send className="h-4 w-4 mr-2" /> Envoyer</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice.idFacture)}><CheckCircle className="h-4 w-4 mr-2" /> Marquer Payée</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleActive(invoice.idFacture)}><CheckCircle className="h-4 w-4 mr-2" /> Activer</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleDelete(invoice.idFacture)} className="text-red-600"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</DropdownMenuItem>
                       </DropdownMenuContent>
