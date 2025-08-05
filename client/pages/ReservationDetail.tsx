@@ -546,18 +546,7 @@ export default function ReservationDetail() {
 
       <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
         <DialogContent className="max-w-4xl">
-          <div className="flex justify-end mb-4">
-            <Button
-              onClick={handleExportPDF}
-              variant="outline"
-              size="sm"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Exporter en PDF
-            </Button>
-          </div>
-
-          <div ref={targetRef}>
+                 <div ref={targetRef}>
             {getInvoiceData() && <InvoiceView invoice={getInvoiceData()!} />}
           </div>
         </DialogContent>

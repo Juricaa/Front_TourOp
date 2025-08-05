@@ -59,6 +59,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
             body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               line-height: 1.6;
+              width: 125%; 
               color: #333;
               max-width: 800px;
               margin: 0 auto;
