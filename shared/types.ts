@@ -318,6 +318,7 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: string;
+  idFacture: string;
   invoiceNumber: string;
   reservationId: string;
   clientId: string;
@@ -331,6 +332,9 @@ export interface Invoice {
   dueDate: Date;
   travelDate: Date;
   returnDate?: Date;
+  dateTravel : Date;
+  dateReturn : Date;
+
 
   // Financial
   currency: "Ar" | "EUR" | "USD";
@@ -339,8 +343,9 @@ export interface Invoice {
   taxAmount: number;
   discountAmount?: number;
   totalAmount: number;
+  totalPrice : string;
   paidAmount: number;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status: "confirmé" | "sent" | "paid" | "overdue" | "annulé";
   paymentMethod?: "cash" | "card" | "transfer" | "mobile";
   paymentDate?: Date;
 
@@ -360,6 +365,7 @@ export interface Invoice {
   terms?: string;
   createdAt: Date;
   updatedAt?: Date;
+  dateCreated : Date;
 }
 
 // Travel Plan types

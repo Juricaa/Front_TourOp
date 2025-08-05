@@ -67,6 +67,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "../lib/utils";
 import html2pdf from 'html2pdf.js';
+import { FactureTable } from "./FactureTable";
 
 type TravelPlanStatus =
   | "draft"
@@ -454,7 +455,7 @@ export const PlansVoyage: React.FC = () => {
       </div>
 
       {/* Travel Plans Table */}
-      <Card className="border-0 shadow-md">
+      {/* <Card className="border-0 shadow-md">
         <Table>
           <TableHeader>
             <TableRow>
@@ -617,7 +618,8 @@ export const PlansVoyage: React.FC = () => {
                 ))}
           </TableBody>
         </Table>
-      </Card>
+      </Card> */}
+       <FactureTable />
 
       {/* View Travel Plan Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
