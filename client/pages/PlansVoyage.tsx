@@ -337,27 +337,11 @@ export const PlansVoyage: React.FC = () => {
             Créez et gérez tous vos itinéraires de voyage
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Nouveau Plan
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <TravelPlanForm
-              onSubmit={async (data) => {
-                await createTravelPlan(data);
-                setIsCreateDialogOpen(false);
-              }}
-              loading={loading}
-            />
-          </DialogContent>
-        </Dialog>
+       
       </div>
 
       {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -420,10 +404,10 @@ export const PlansVoyage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div>   */}
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      {/* <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -452,7 +436,7 @@ export const PlansVoyage: React.FC = () => {
             <SelectItem value="cancelled">Annulé</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
       {/* Travel Plans Table */}
       {/* <Card className="border-0 shadow-md">
