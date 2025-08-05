@@ -152,7 +152,7 @@ export default function ReservationDetail() {
   };
 
   const transformBackendDataToReservation = (backendData: any[]): SingleReservation => {
-    
+
     const aggregatedReservation: SingleReservation = {
       id: "AGG_" + Date.now().toString(),
       clientId: "",
@@ -245,7 +245,7 @@ export default function ReservationDetail() {
     return aggregatedReservation;
   };
 
-  
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -483,7 +483,7 @@ export default function ReservationDetail() {
   }
 
   const StatusIcon = getStatusIcon(status);
-  console.log (reservation.status)
+  console.log(reservation.status)
 
   return (
     <div className="p-6 space-y-6">
@@ -566,16 +566,7 @@ export default function ReservationDetail() {
 
       <Dialog open={isTravelPlanOpen} onOpenChange={setIsTravelPlanOpen}>
         <DialogContent className="max-w-4xl">
-          <div className="flex justify-end">
-            <Button onClick={handleExportPlanPDF} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Exporter en PDF
-            </Button>
-          </div>
-
-
-
-          <div  ref={planRef}> 
+          <div>
             {getTravelPlanData() && <TravelPlanView plan={getTravelPlanData()!} />}
           </div>
 

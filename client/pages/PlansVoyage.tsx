@@ -157,14 +157,14 @@ export const PlansVoyage: React.FC = () => {
     // Créer une nouvelle fenêtre pour l'impression
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-
+  
     // Générer le contenu HTML
     const content = generateTravelPlanDocument(plan);
-
+  
     // Écrire le contenu dans la nouvelle fenêtre
     printWindow.document.write(content);
     printWindow.document.close();
-
+  
     // Attendre que le contenu soit chargé avant d'imprimer
     printWindow.onload = () => {
       setTimeout(() => {
@@ -175,7 +175,7 @@ export const PlansVoyage: React.FC = () => {
     };
   };
 
-
+  
 
   // const handleDownloadPlan = (plan: TravelPlan) => {
   //   alert(`Téléchargement du plan ${plan.planNumber}`);
@@ -275,10 +275,10 @@ export const PlansVoyage: React.FC = () => {
   
                 <p><strong>Repas inclus:</strong> 
                   ${[
-        day.meals.breakfast ? 'Petit-déjeuner' : '',
-        day.meals.lunch ? 'Déjeuner' : '',
-        day.meals.dinner ? 'Dîner' : ''
-      ].filter(Boolean).join(', ')}
+                    day.meals.breakfast ? 'Petit-déjeuner' : '',
+                    day.meals.lunch ? 'Déjeuner' : '',
+                    day.meals.dinner ? 'Dîner' : ''
+                  ].filter(Boolean).join(', ')}
                 </p>
   
                 ${day.notes ? `<p><strong>Notes:</strong> ${day.notes}</p>` : ''}
@@ -295,7 +295,7 @@ export const PlansVoyage: React.FC = () => {
         </body>
       </html>
     `;
-
+  
     return content;
   };
 
@@ -304,11 +304,11 @@ export const PlansVoyage: React.FC = () => {
     try {
       // Générer le contenu HTML
       const content = generateTravelPlanDocument(plan);
-
+      
       // Créer un élément div temporaire pour contenir le HTML
       const element = document.createElement('div');
       element.innerHTML = content;
-
+      
       // Options de configuration du PDF
       const opt = {
         margin: 10,
@@ -317,10 +317,10 @@ export const PlansVoyage: React.FC = () => {
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-
+  
       // Générer et télécharger le PDF
       await html2pdf().set(opt).from(element).save();
-
+      
     } catch (error) {
       console.error('Erreur lors de la génération du PDF:', error);
       alert('Une erreur est survenue lors de la génération du PDF');
@@ -471,150 +471,150 @@ export const PlansVoyage: React.FC = () => {
           <TableBody>
             {loading
               ? Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  {[...Array(8)].map((_, j) => (
-                    <TableCell key={j}>
-                      <div className="h-4 bg-muted rounded animate-pulse" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+                  <TableRow key={i}>
+                    {[...Array(8)].map((_, j) => (
+                      <TableCell key={j}>
+                        <div className="h-4 bg-muted rounded animate-pulse" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               : filteredPlans.map((plan) => (
-                <TableRow key={plan.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{plan.planNumber}</div>
-                      <div className="text-sm text-muted-foreground truncate max-w-40">
-                        {plan.title}
+                  <TableRow key={plan.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{plan.planNumber}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-40">
+                          {plan.title}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{plan.clientName}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{plan.destination}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{plan.clientName}</div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        {format(new Date(plan.startDate), "dd/MM/yyyy", {
-                          locale: fr,
-                        })}
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm">{plan.destination}</span>
                       </div>
-                      <div className="text-muted-foreground">
-                        {plan.duration} jour{plan.duration > 1 ? "s" : ""}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          {format(new Date(plan.startDate), "dd/MM/yyyy", {
+                            locale: fr,
+                          })}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {plan.duration} jour{plan.duration > 1 ? "s" : ""}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{plan.participants}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-right">
-                      <div className="font-semibold">
-                        €{plan.totalPrice.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm">{plan.participants}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        €{plan.pricePerPerson.toLocaleString()}/pers
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-right">
+                        <div className="font-semibold">
+                          €{plan.totalPrice.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          €{plan.pricePerPerson.toLocaleString()}/pers
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <Badge className={statusColors[plan.status]}>
-                        {statusLabels[plan.status]}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${difficultyColors[plan.difficulty]}`}
-                      >
-                        {difficultyLabels[plan.difficulty]}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={statusColors[plan.status]}>
+                          {statusLabels[plan.status]}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${difficultyColors[plan.difficulty]}`}
                         >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleView(plan)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Voir détails
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handlePrintPlan(plan)}
-                          className="font-medium"
-                        >
-                          <Printer className="h-4 w-4 mr-2" />
-                          Imprimer
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDownloadPlan(plan)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Télécharger
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {plan.status === "draft" && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleUpdateStatus(plan.id, "proposal")
-                            }
+                          {difficultyLabels[plan.difficulty]}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                           >
-                            <Send className="h-4 w-4 mr-2" />
-                            Proposer au client
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleView(plan)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Voir détails
                           </DropdownMenuItem>
-                        )}
-                        {plan.status === "proposal" && (
+                         <DropdownMenuItem
+  onClick={() => handlePrintPlan(plan)}
+  className="font-medium"
+>
+  <Printer className="h-4 w-4 mr-2" />
+  Imprimer
+</DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleUpdateStatus(plan.id, "confirmed")
-                            }
+                            onClick={() => handleDownloadPlan(plan)}
                           >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Confirmer
+                            <Download className="h-4 w-4 mr-2" />
+                            Télécharger
                           </DropdownMenuItem>
-                        )}
-                        {plan.status === "confirmed" && (
+                          <DropdownMenuSeparator />
+                          {plan.status === "draft" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateStatus(plan.id, "proposal")
+                              }
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Proposer au client
+                            </DropdownMenuItem>
+                          )}
+                          {plan.status === "proposal" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateStatus(plan.id, "confirmed")
+                              }
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Confirmer
+                            </DropdownMenuItem>
+                          )}
+                          {plan.status === "confirmed" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateStatus(plan.id, "active")
+                              }
+                            >
+                              <Route className="h-4 w-4 mr-2" />
+                              Activer
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() =>
-                              handleUpdateStatus(plan.id, "active")
-                            }
+                            onClick={() => handleDelete(plan.id)}
+                            className="text-red-600"
                           >
-                            <Route className="h-4 w-4 mr-2" />
-                            Activer
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(plan.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </Card>
@@ -935,7 +935,7 @@ const TravelPlanView: React.FC<TravelPlanViewProps> = ({ plan }) => {
               <Badge variant="outline">
                 {
                   travelStyleLabels[
-                  plan.travelStyle as keyof typeof travelStyleLabels
+                    plan.travelStyle as keyof typeof travelStyleLabels
                   ]
                 }
               </Badge>
@@ -1056,17 +1056,17 @@ const TravelPlanView: React.FC<TravelPlanViewProps> = ({ plan }) => {
                   {(day.meals.breakfast ||
                     day.meals.lunch ||
                     day.meals.dinner) && (
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        Repas inclus:{" "}
-                        {[
-                          day.meals.breakfast && "Petit-déjeuner",
-                          day.meals.lunch && "Déjeuner",
-                          day.meals.dinner && "Dîner",
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </div>
-                    )}
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Repas inclus:{" "}
+                      {[
+                        day.meals.breakfast && "Petit-déjeuner",
+                        day.meals.lunch && "Déjeuner",
+                        day.meals.dinner && "Dîner",
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </div>
+                  )}
 
                   {day.notes && (
                     <div className="mt-2 text-xs text-muted-foreground">
