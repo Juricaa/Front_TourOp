@@ -22,16 +22,20 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "../components/ui/dialog";
+import { toast } from '@/hooks/use-toast';
 // Définir les couleurs et labels
 const statusColors = {
     'confirmé': 'bg-green-100 text-green-800',
     'annulé': 'bg-red-100 text-red-800',
     'en attente': 'bg-yellow-100 text-yellow-800',
+    'en_cours': 'bg-blue-100 text-blue-800',
+
 };
 
 const statusLabels = {
     'confirmé': 'Confirmé',
     'annulé': 'Annulé',
+    'en_cours': 'En cours',
     'en_attente': 'En attente',
 };
 
@@ -300,7 +304,33 @@ export function FactureTable() {
     const handlePrint = (invoice: Invoice) => console.log('Imprimer', invoice);
     const handleDownload = (invoice: Invoice) => console.log('Télécharger', invoice);
     const handleSend = (id: string) => console.log('Envoyer', id);
-    const handleActive = (id: string) => console.log('Payée', id);
+
+    const handleActive = async (id: string, idclient: string ) => {
+        console.log('Payée', id)
+        try {
+                
+            const updatedData = {
+              clientId: idclient,
+              status: "en_cours",
+            };
+      
+            const response = await factureService.updateFacture(id, updatedData);
+            fetchInvoices();
+      
+            toast({
+              title: "Succès",
+              description: `Statut mis à jour: ${status}`,
+            });
+          } catch (error) {
+            console.error("Erreur lors de la mise à jour:", error);
+            toast({
+              title: "Erreur",
+              description: `Impossible de mettre à jour le statut: ${error instanceof Error ? error.message : "Erreur inconnue"
+                }`,
+              variant: "destructive",
+            });
+          }
+    };
     const handleDelete = (id: string) => console.log('Supprimer', id);
 
     if (error) {
@@ -387,9 +417,10 @@ export function FactureTable() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="confirmé">Confirmé</SelectItem>
-                        <SelectItem value="all">Tous les statuts</SelectItem>
+                        <SelectItem value="en_cours">En cours</SelectItem>
                         <SelectItem value="en attente">En attente</SelectItem>
-                        <SelectItem value="annulé">Annulé</SelectItem>
+                        <SelectItem value="all">Tous les statuts</SelectItem>
+                                                
                     </SelectContent>
                 </Select>
             </div>
@@ -447,11 +478,11 @@ export function FactureTable() {
                                                 <DropdownMenuItem onClick={() => handleView(invoice)}><Eye className="h-4 w-4 mr-2" />
                                                     Voir
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handlePrint(invoice)}><Printer className="h-4 w-4 mr-2" /> Imprimer</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDownload(invoice)}><Download className="h-4 w-4 mr-2" /> Télécharger</DropdownMenuItem>
+                                                
+                                                {/* <DropdownMenuItem onClick={() => handleDownload(invoice)}><Download className="h-4 w-4 mr-2" /> Télécharger</DropdownMenuItem> */}
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem onClick={() => handleSend(invoice.idFacture)}><Send className="h-4 w-4 mr-2" /> Envoyer</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleActive(invoice.idFacture)}><CheckCircle className="h-4 w-4 mr-2" /> Activer</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleActive(invoice.idFacture , invoice.clientId.idClient)}><CheckCircle className="h-4 w-4 mr-2" /> Activer</DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem onClick={() => handleDelete(invoice.idFacture)} className="text-red-600"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</DropdownMenuItem>
                                             </DropdownMenuContent>
