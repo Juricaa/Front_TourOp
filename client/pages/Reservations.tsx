@@ -177,9 +177,8 @@ export default function Reservations() {
       console.error("Erreur lors de la suppression:", error);
       toast({
         title: "Erreur",
-        description: `Impossible de supprimer: ${
-          error instanceof Error ? error.message : "Erreur inconnue"
-        }`,
+        description: `Impossible de supprimer: ${error instanceof Error ? error.message : "Erreur inconnue"
+          }`,
         variant: "destructive",
       });
     }
@@ -203,9 +202,8 @@ export default function Reservations() {
       console.error("Erreur lors de la confirmation:", error);
       toast({
         title: "Erreur",
-        description: `Impossible de confirmer la reservation: ${
-          error instanceof Error ? error.message : "Erreur inconnue"
-        }`,
+        description: `Impossible de confirmer la reservation: ${error instanceof Error ? error.message : "Erreur inconnue"
+          }`,
         variant: "destructive",
       });
     }
@@ -234,9 +232,8 @@ export default function Reservations() {
       console.error("Erreur lors de la mise à jour:", error);
       toast({
         title: "Erreur",
-        description: `Impossible de mettre à jour le statut: ${
-          error instanceof Error ? error.message : "Erreur inconnue"
-        }`,
+        description: `Impossible de mettre à jour le statut: ${error instanceof Error ? error.message : "Erreur inconnue"
+          }`,
         variant: "destructive",
       });
     }
@@ -357,6 +354,7 @@ export default function Reservations() {
                 <TableRow>
                   <TableHead>Réservation</TableHead>
                   <TableHead>Client</TableHead>
+                  <TableHead>Destination</TableHead>
                   <TableHead>Dates</TableHead>
 
                   <TableHead>Statut</TableHead>
@@ -385,6 +383,20 @@ export default function Reservations() {
                         <div className="font-medium">{reservation.clientId.name}</div>
                         <div className="text-sm text-muted-foreground">
                           {reservation.clientId.email}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          <div className="space-y-1">
+                            {reservation.clientId.destinations?.map((destination, index) => (
+                              <div key={index} className="flex items-center text-sm text-gray-700">
+                                <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                                {destination}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
