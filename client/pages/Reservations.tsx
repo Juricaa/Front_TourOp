@@ -105,6 +105,8 @@ export default function Reservations() {
         return "bg-destructive/10 text-destructive border-destructive/20";
       case "completed":
         return "bg-ocean-100 text-ocean-800 border-ocean-200";
+      case "en_cours":
+        return "bg-amber-100 text-amber-800 border-amber-200";
       default:
         return "bg-muted text-muted-foreground";
     }

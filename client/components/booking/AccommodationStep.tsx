@@ -243,11 +243,10 @@ export default function AccommodationStep() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating)
-            ? "text-yellow-400 fill-current"
-            : "text-gray-300"
-        }`}
+        className={`w-4 h-4 ${i < Math.floor(rating)
+          ? "text-yellow-400 fill-current"
+          : "text-gray-300"
+          }`}
       />
     ));
   }, []);
@@ -383,20 +382,7 @@ export default function AccommodationStep() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end mb-4">
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4" />
-              Créer un hébergement
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <HebergementForm
-              onSubmit={handleCreateAccommodation}
-              loading={createLoading}
-            />
-          </DialogContent>
-        </Dialog>
+
       </div>
 
       {/* Booking Form */}
@@ -677,13 +663,13 @@ export default function AccommodationStep() {
                     <div className="font-semibold text-lg">
                       {filteredAccommodations.length > 0
                         ? Math.round(
-                            (filteredAccommodations.reduce(
-                              (acc, h) => acc + h.rating,
-                              0,
-                            ) /
-                              filteredAccommodations.length) *
-                              10,
-                          ) / 10
+                          (filteredAccommodations.reduce(
+                            (acc, h) => acc + h.rating,
+                            0,
+                          ) /
+                            filteredAccommodations.length) *
+                          10,
+                        ) / 10
                         : 0}
                     </div>
                     <div className="text-muted-foreground">Note moy.</div>
@@ -708,10 +694,28 @@ export default function AccommodationStep() {
       </Card>
 
       {/* Available Accommodations */}
-      <section>
-        <h3 className="text-lg font-medium text-foreground mb-4">
-          Hébergements disponibles ({filteredAccommodations.length})
-        </h3>
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-foreground">
+            Hébergements disponibles ({filteredAccommodations.length})
+          </h3>
+
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4" />
+                Créer un hébergement
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <HebergementForm
+                onSubmit={handleCreateAccommodation}
+                loading={createLoading}
+              />
+            </DialogContent>
+          </Dialog>
+
+        </div>
         <div
           className="space-y-4 pr-2" // Added pr-2 for padding-right for scrollbar
           style={{
@@ -719,7 +723,7 @@ export default function AccommodationStep() {
             overflowY: showAllAccommodations ? "visible" : "auto",
           }}
         >
-          {displayedAccommodations.map((hebergement) => {
+          {filteredAccommodations.map((hebergement) => {
             const nights = calculateNights(
               bookingForm.checkIn,
               bookingForm.checkOut,
@@ -823,9 +827,9 @@ export default function AccommodationStep() {
                       !bookingForm.checkIn ||
                       !bookingForm.checkOut ||
                       bookingForm.guests > hebergement.capacity
-                    }   className="w-full"
+                    } className="w-full"
                   >
-                     <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="w-4 h-4 mr-2" />
                     {bookingForm.guests > hebergement.capacity
                       ? "Capacité insuffisante"
                       : !bookingForm.checkIn || !bookingForm.checkOut
@@ -836,15 +840,12 @@ export default function AccommodationStep() {
               </Card>
             );
           })}
-          {filteredAccommodations.length === 0 && !loading && (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucun hébergement ne correspond à vos critères de recherche.
-            </div>
-            
-          )}
+
         </div>
+        
+
         {filteredAccommodations.length > 3 && (
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-6">
             <Button
               variant="outline"
               onClick={() => setShowAllAccommodations(!showAllAccommodations)}
@@ -863,7 +864,38 @@ export default function AccommodationStep() {
             </Button>
           </div>
         )}
-      </section>
+      </div>
+      {filteredAccommodations.length === 0 && !loading && (
+          <div className="text-center py-8 text-muted-foreground">
+            Aucun hébergement ne correspond à vos critères de recherche.
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearAllFilters}
+              className="mt-3"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Effacer tous les filtres
+            </Button>
+          </div>
+
+
+        )}
+
+         {state.flights.length === 0 && (
+                <div className="text-center py-8 bg-muted/30 rounded-lg">
+                  <Building className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                  <h3 className="mt-2 text-sm font-medium text-foreground">
+                    Aucun vehicule sélectionné
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Ajoutez des vehicule pour continuer
+                  </p>
+                </div>
+              )}
     </div>
+
+    
   );
 }

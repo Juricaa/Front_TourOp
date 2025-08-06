@@ -144,7 +144,7 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
                     ${vol.arrival}
                   </div>
                   <div class="details">
-                    ${vol.passengers} passager(s)
+                    ${vol.passengers} passager(s) . Depart le ${new Date(vol.date_debut).toLocaleDateString("fr-FR")} - retour : ${new Date(vol.date_fin).toLocaleDateString("fr-FR")}
                   </div>
                 </div>
               </div>

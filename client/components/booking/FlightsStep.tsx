@@ -826,6 +826,7 @@ export default function FlightsStep() {
                     onClick={() => handleAddFlight(vol)}
                     disabled={
                       !flightForm.departureDate ||
+                      !flightForm.returnDate ||
                       vol.availability === "full" ||
                       flightForm.passengers <= 0
                     }
@@ -833,10 +834,9 @@ export default function FlightsStep() {
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {
-                      !flightForm.departureDate
-                        ? "Sélectionnez une date"
-                        : vol.availability === "full"
-                          ? "Complet"
+                      !flightForm.departureDate ? "Sélectionnez une date"
+                        : !flightForm.returnDate
+                          ? "Sélectionnez date retour"
                           : `Ajouter (${formatCurrency(totalPrice)} Ar)`
                     }
                   </Button>
