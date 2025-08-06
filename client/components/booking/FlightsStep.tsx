@@ -41,6 +41,7 @@ import { volService } from "@/services/volService";
 import { toast } from "@/hooks/use-toast";
 import { useFlightBooking } from "@/hooks/useFlightBooking";
 import { reservationService } from "@/services/reservationService";
+import { validateFlightDatesAgainstTravel, isDateWithinTravelPeriod, getDateValidationMessage } from "@/lib/enhancedDateValidation";
 
 const serviceIcons: Record<string, any> = {
   "repas": Star,
@@ -125,10 +126,29 @@ export default function FlightsStep() {
   };
 
   const handleAddFlight = async (vol: Vol) => {
-    if (!flightForm.departureDate) {
+    if (!flightForm.departureDate || !flightForm.returnDate) {
       toast({
-        title: "Date manquante",
-        description: "Veuillez sélectionner une date de départ.",
+        title: "Dates manquantes",
+        description: "Veuillez sélectionner les dates de départ et de retour.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate flight dates against travel dates
+    const validation = validateFlightDatesAgainstTravel(
+      flightForm.departureDate,
+      flightForm.returnDate,
+      {
+        dateTravel: state.client?.dateTravel || new Date(),
+        dateReturn: state.client?.dateReturn || new Date()
+      }
+    );
+
+    if (!validation.isValid) {
+      toast({
+        title: "Date invalide",
+        description: validation.errors.join('. '),
         variant: "destructive",
       });
       return;
@@ -145,30 +165,35 @@ export default function FlightsStep() {
   };
 
   const handleRemoveFlight = useCallback(
-    async (flightId: string, reservationIdToDelete: string) => {
+    async (flightId: string, reservationIdToDelete?: string) => {
       try {
-        const response = await reservationService.deleteReservation(
-          reservationIdToDelete,
-        );
-        if (response.success) {
+        if (reservationIdToDelete) {
+          const response = await reservationService.deleteReservation(reservationIdToDelete);
+          if (response.success) {
+            removeFlight(flightId);
+            toast({
+              title: "Réservation supprimée",
+              description: "Le vol a été supprimé avec succès.",
+            });
+          } else {
+            toast({
+              title: "Erreur",
+              description: response.error || "Erreur lors de la suppression de la réservation.",
+              variant: "destructive",
+            });
+          }
+        } else {
           removeFlight(flightId);
           toast({
-            title: "Réservation supprimée",
-            description: "Le vol a été supprimé avec succès.",
-          });
-        } else {
-          toast({
-            title: "Erreur",
-            description:
-              response.error || "Erreur lors de la suppression de la réservation.",
-            variant: "destructive",
+            title: "Vol supprimé",
+            description: "Le vol a été retiré de la sélection.",
           });
         }
       } catch (error) {
         console.error("Error deleting reservation:", error);
         toast({
           title: "Erreur",
-          description: "Une erreur est survenue lors de la suppression de la réservation.",
+          description: "Une erreur est survenue lors de la suppression.",
           variant: "destructive",
         });
       }

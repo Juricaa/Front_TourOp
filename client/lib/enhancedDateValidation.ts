@@ -1,0 +1,108 @@
+import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
+
+export interface TravelDates {
+  dateTravel: Date | string;
+  dateReturn: Date | string;
+}
+
+export interface FlightValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export const validateFlightDatesAgainstTravel = (
+  flightDeparture: Date | string,
+  flightReturn: Date | string,
+  travelDates: TravelDates
+): FlightValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  
+  const travelStart = typeof travelDates.dateTravel === 'string' 
+    ? parseISO(travelDates.dateTravel) 
+    : travelDates.dateTravel;
+    
+  const travelEnd = typeof travelDates.dateReturn === 'string' 
+    ? parseISO(travelDates.dateReturn) 
+    : travelDates.dateReturn;
+    
+  const flightDep = typeof flightDeparture === 'string' 
+    ? parseISO(flightDeparture) 
+    : flightDeparture;
+    
+  const flightRet = flightReturn 
+    ? (typeof flightReturn === 'string' ? parseISO(flightReturn) : flightReturn)
+    : flightDep;
+
+  // Validate departure date
+  if (isBefore(flightDep, travelStart)) {
+    errors.push(`Le vol ne peut pas partir avant le ${format(travelStart, 'dd/MM/yyyy')}`);
+  }
+
+  // Validate return date
+  if (isAfter(flightRet, travelEnd)) {
+    errors.push(`Le vol ne peut pas retourner après le ${format(travelEnd, 'dd/MM/yyyy')}`);
+  }
+
+  // Validate departure is not after return
+  if (isAfter(flightDep, travelEnd)) {
+    errors.push('Le vol de départ ne peut pas être après la date de retour prévue');
+  }
+
+  // Warning for flights close to travel boundaries
+  const daysBeforeTravel = Math.abs(flightDep.getTime() - travelStart.getTime()) / (1000 * 3600 * 24);
+  const daysAfterReturn = Math.abs(flightRet.getTime() - travelEnd.getTime()) / (1000 * 3600 * 24);
+  
+  if (daysBeforeTravel < 1) {
+    warnings.push('Le vol part très proche de la date de voyage');
+  }
+  
+  if (daysAfterReturn < 1) {
+    warnings.push('Le vol retour est très proche de la date de retour');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+export const formatDateRange = (travelDates: TravelDates): string => {
+  const start = typeof travelDates.dateTravel === 'string' 
+    ? parseISO(travelDates.dateTravel) 
+    : travelDates.dateTravel;
+    
+  const end = typeof travelDates.dateReturn === 'string' 
+    ? parseISO(travelDates.dateReturn) 
+    : travelDates.dateReturn;
+
+  return `${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`;
+};
+
+export const getDateValidationMessage = (travelDates: TravelDates): string => {
+  if (!travelDates.dateTravel || !travelDates.dateReturn) {
+    return "Veuillez d'abord définir vos dates de voyage dans l'étape client";
+  }
+  
+  return `Période de voyage: ${formatDateRange(travelDates)}`;
+};
+
+export const isDateWithinTravelPeriod = (
+  date: Date | string,
+  travelDates: TravelDates
+): boolean => {
+  const travelStart = typeof travelDates.dateTravel === 'string' 
+    ? parseISO(travelDates.dateTravel) 
+    : travelDates.dateTravel;
+    
+  const travelEnd = typeof travelDates.dateReturn === 'string' 
+    ? parseISO(travelDates.dateReturn) 
+    : travelDates.dateReturn;
+    
+  const checkDate = typeof date === 'string' ? parseISO(date) : date;
+
+  return (isAfter(checkDate, travelStart) || isEqual(checkDate, travelStart)) && 
+         (isBefore(checkDate, travelEnd) || isEqual(checkDate, travelEnd));
+};
