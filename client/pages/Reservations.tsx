@@ -52,13 +52,22 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Reservations() {
   const [reservations, setReservations] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState(null);
+  const STATUS_OPTIONS = [
+    { value: "all", label: "Tous les statuts" },
+    { value: "confirmé", label: "Confirmées" },
+    { value: "en_attente", label: "En attente" },
+    { value: "en_cours", label: "En cours" },
+    { value: "completed", label: "Terminées" },
+  ];
 
   // State for delete confirmation dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -127,9 +136,25 @@ export default function Reservations() {
     }
   };
 
-  const filteredReservations = reservations.filter((reservation) =>
-    reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredReservations = reservations.filter((reservation) => {
+
+    const statusMatch =
+      statusFilter === "all" || 
+      reservation.status === statusFilter;
+
+    const searchMatch =
+      reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reservation.clientId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (reservation.clientId.destinations || []).some(dest =>
+        dest.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
+      reservation.totalPrice.toString().includes(searchQuery);
+
+    return statusMatch && searchMatch;
+    // reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase())
+
+  });
+
 
   if (loading) {
     return (
@@ -211,16 +236,13 @@ export default function Reservations() {
     }
   };
 
-  const handleUpdateStatus = async (invoiceId: string, newStatus: string) => {
+  const handleUpdateStatus = async (invoiceId: string, idCli: string) => {
     try {
-      const statusMap: { [key: string]: "paid" | "sent" | "draft" | "cancelled" | "overdue" } = {
-        "active": "paid",
-        "confirmé": "paid",
-        "en_attente": "sent"
-      };
-
+     
       const updatedData = {
-        status: statusMap[newStatus] || "sent",
+        clientId : idCli,
+        status: "en_cours",
+
       };
 
       const response = await factureService.updateFacture(invoiceId, updatedData);
@@ -228,7 +250,7 @@ export default function Reservations() {
 
       toast({
         title: "Succès",
-        description: `Statut mis à jour: ${newStatus}`,
+        description: `Statut mis à jour: active`,
       });
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
@@ -332,20 +354,30 @@ export default function Reservations() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Liste des Réservations</CardTitle>
+
+            {/* Dans le CardHeader, modifiez la partie filtres */}
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Rechercher par ID..."
+                  placeholder="Rechercher (ID, client, destination, montant...)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-64"
                 />
               </div>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtres
-              </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="en_attente">En attente</SelectItem>
+                  <SelectItem value="confirmé">Confirmées</SelectItem>
+                  <SelectItem value="en_cours">En cours</SelectItem>
+                  <SelectItem value="completed">Terminées</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -469,7 +501,7 @@ export default function Reservations() {
                               onClick={() =>
                                 handleUpdateStatus(
                                   reservation.idFacture,
-                                  "active"
+                                  reservation.clientId.idClient
                                 )
                               }
                             >
@@ -495,6 +527,7 @@ export default function Reservations() {
                             <Eye className="h-4 w-4 mr-2" />
                             Voir détail
                           </DropdownMenuItem>
+                          {(reservation.status === "en_attente" || reservation.status === "confirmé") && (
                           <DropdownMenuItem
                             onClick={() => {
                               setReservationToDelete({
@@ -510,6 +543,7 @@ export default function Reservations() {
                             <Trash2 className="h-4 w-4 mr-2" />
                             Supprimer
                           </DropdownMenuItem>
+                          )}
 
                           <DropdownMenuSeparator />
                         </DropdownMenuContent>

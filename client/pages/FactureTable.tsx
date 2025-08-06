@@ -482,9 +482,16 @@ export function FactureTable() {
                                                 {/* <DropdownMenuItem onClick={() => handleDownload(invoice)}><Download className="h-4 w-4 mr-2" /> Télécharger</DropdownMenuItem> */}
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem onClick={() => handleSend(invoice.idFacture)}><Send className="h-4 w-4 mr-2" /> Envoyer</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleActive(invoice.idFacture , invoice.clientId.idClient)}><CheckCircle className="h-4 w-4 mr-2" /> Activer</DropdownMenuItem>
+                                                {invoice.status === "confirmé"  && (
+                                                    <DropdownMenuItem onClick={() => handleActive(invoice.idFacture , invoice.clientId.idClient)}><CheckCircle className="h-4 w-4 mr-2" /> Activer</DropdownMenuItem>
+                                                  )
+
+                                                }
                                                 <DropdownMenuSeparator />
-                                                <DropdownMenuItem onClick={() => handleDelete(invoice.idFacture)} className="text-red-600"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</DropdownMenuItem>
+                                                {(invoice.status === "en_attente" || invoice.status === "confirmé") && (
+                                                    
+                                                    <DropdownMenuItem onClick={() => handleDelete(invoice.idFacture)} className="text-red-600"><Trash2 className="h-4 w-4 mr-2" /> Supprimer</DropdownMenuItem>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
