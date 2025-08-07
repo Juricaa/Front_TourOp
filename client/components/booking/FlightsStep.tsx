@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ import {
   ChevronUp,
   ChevronDown,
   MapPin,
-  Calendar,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { useBooking } from "@/contexts/BookingContext";
 import { normalizeVol, type Vol } from "@shared/types";
@@ -82,6 +82,14 @@ export default function FlightsStep() {
     passengers: state.client?.nbpersonnes || 1,
   });
 
+  // Helper to format date as YYYY-MM-DD in local time to avoid timezone shift
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("Tous");
@@ -91,9 +99,45 @@ export default function FlightsStep() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+
+  // Close create flight dialog after adding a flight
+  useEffect(() => {
+    if (!createLoading && isCreateDialogOpen) {
+      setIsCreateDialogOpen(false);
+    }
+  }, [createLoading, isCreateDialogOpen]);
   const [displayAllFlights, setDisplayAllFlights] = useState(false);
   const [editingFlightId, setEditingFlightId] = useState<string | null>(null);
   const [tempPassengers, setTempPassengers] = useState(1);
+
+  const departureDateRef = useRef<HTMLDivElement>(null);
+  const returnDateRef = useRef<HTMLDivElement>(null);
+  const [showDepartureCalendar, setShowDepartureCalendar] = useState(false);
+  const [showReturnCalendar, setShowReturnCalendar] = useState(false);
+
+  // Close calendar on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        departureDateRef.current &&
+        !departureDateRef.current.contains(event.target as Node)
+      ) {
+        setShowDepartureCalendar(false);
+      }
+      if (
+        returnDateRef.current &&
+        !returnDateRef.current.contains(event.target as Node)
+      ) {
+        setShowReturnCalendar(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+
 
   useEffect(() => {
     fetchFlights();
@@ -381,6 +425,8 @@ export default function FlightsStep() {
                 onChange={(e) =>
                   setFlightForm({ ...flightForm, departureDate: e.target.value })
                 }
+                min={state.client?.dateTravel ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined}
+                max={flightForm.returnDate || (state.client?.dateReturn ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined)}
               />
             </div>
             <div className="space-y-2">
@@ -392,6 +438,8 @@ export default function FlightsStep() {
                 onChange={(e) =>
                   setFlightForm({ ...flightForm, returnDate: e.target.value })
                 }
+                min={flightForm.departureDate || (state.client?.dateTravel ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined)}
+                max={state.client?.dateReturn ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined}
               />
             </div>
             <div className="space-y-2">

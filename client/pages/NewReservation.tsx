@@ -127,6 +127,7 @@ function BookingStepper() {
         currentStepConfig?.component as keyof typeof stepComponents
       ];
 
+      
     // Guard against invalid step component
     if (!StepComponent) {
       return (
