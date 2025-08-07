@@ -32,8 +32,8 @@ export default function ClientStep() {
     address: "",
     nbpersonnes: 2,
     notes: "",
-    dateTravel: new Date(""),
-    dateReturn: new Date(""),
+    dateTravel: "",
+    dateReturn: "",
   };
 
   useEffect(() => {
@@ -90,9 +90,22 @@ export default function ClientStep() {
       clientForm.name &&
       clientForm.email &&
       clientForm.phone &&
-      clientForm.nationality
+      clientForm.nationality &&
+      clientForm.dateTravel &&
+      clientForm.dateReturn
     ) {
+      // Validate that return date is after travel date
+      const travelDate = new Date(clientForm.dateTravel);
+      const returnDate = new Date(clientForm.dateReturn);
+      
+      if (returnDate <= travelDate) {
+        alert("La date de retour doit être après la date de voyage");
+        return;
+      }
+      
       setClient(clientForm);
+    } else {
+      alert("Veuillez remplir tous les champs obligatoires, y compris les dates de voyage");
     }
   };
 
@@ -218,17 +231,20 @@ export default function ClientStep() {
                     type="date"
                     value={clientForm.dateTravel}
                     onChange={(e) => handleInputChange("dateTravel", e.target.value)}
+                    required
+                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dateReturn">Au *</Label>
+                  <Label htmlFor="dateReturn">Date de retour *</Label>
                   <Input
                     id="dateReturn"
                     type="date"
                     value={clientForm.dateReturn}
                     onChange={(e) => handleInputChange("dateReturn", e.target.value)}
                     required
+                    min={clientForm.dateTravel || new Date().toISOString().split('T')[0]}
                   />
                 </div>
               </div>

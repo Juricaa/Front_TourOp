@@ -427,8 +427,8 @@ export default function FlightsStep() {
                 onChange={(e) =>
                   setFlightForm({ ...flightForm, departureDate: e.target.value })
                 }
-                min={state.client?.dateTravel ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined}
-                max={flightForm.returnDate || (state.client?.dateReturn ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined)}
+                min={state.client?.dateTravel && state.client.dateTravel !== "" ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined}
+                max={flightForm.returnDate || (state.client?.dateReturn && state.client.dateReturn !== "" ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined)}
               />
             </div>
             <div className="space-y-2">
@@ -440,8 +440,8 @@ export default function FlightsStep() {
                 onChange={(e) =>
                   setFlightForm({ ...flightForm, returnDate: e.target.value })
                 }
-                min={flightForm.departureDate || (state.client?.dateTravel ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined)}
-                max={state.client?.dateReturn ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined}
+                min={flightForm.departureDate || (state.client?.dateTravel && state.client.dateTravel !== "" ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined)}
+                max={state.client?.dateReturn && state.client.dateReturn !== "" ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined}
               />
             </div>
             <div className="space-y-2">

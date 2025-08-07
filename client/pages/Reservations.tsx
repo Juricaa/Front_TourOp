@@ -413,9 +413,13 @@ export default function Reservations() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{reservation.clientId.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                      <div>  
+                        <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {reservation.clientId.name}
+                        </span>
+                      </div><div className="text-sm text-muted-foreground">
                           {reservation.clientId.email}
                         </div>
                       </div>
