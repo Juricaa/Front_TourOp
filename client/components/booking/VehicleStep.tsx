@@ -397,34 +397,7 @@ export default function VehicleStep() {
 
   return (
     <div className="space-y-6">
-      {/* Date validation messages */}
-      {dateValidationErrors.length > 0 && (
-        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
-            <span className="text-sm font-medium text-red-700">Erreurs de dates</span>
-          </div>
-          <ul className="list-disc list-inside text-sm text-red-600 mt-1">
-            {dateValidationErrors.map((error, idx) => (
-              <li key={idx}>{error}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
-      {dateValidationWarnings.length > 0 && (
-        <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-          <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-yellow-600" />
-            <span className="text-sm font-medium text-yellow-700">Avertissements</span>
-          </div>
-          <ul className="list-disc list-inside text-sm text-yellow-600 mt-1">
-            {dateValidationWarnings.map((warning, idx) => (
-              <li key={idx}>{warning}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Formulaire de Location */}
       <Card>
@@ -526,6 +499,36 @@ export default function VehicleStep() {
               </span>
             </div>
           )}
+
+          {/* Date validation messages */}
+          {dateValidationErrors.length > 0 && (
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-700">Erreurs de dates</span>
+              </div>
+              <ul className="list-disc list-inside text-sm text-red-600 mt-1">
+                {dateValidationErrors.map((error, idx) => (
+                  <li key={idx}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {dateValidationWarnings.length > 0 && (
+            <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-700">Avertissements</span>
+              </div>
+              <ul className="list-disc list-inside text-sm text-yellow-600 mt-1">
+                {dateValidationWarnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
@@ -540,7 +543,7 @@ export default function VehicleStep() {
               const voiture = availableVehicles.find((v) =>
                 vehicle.id === v.idVoiture || vehicle.id.startsWith(v.idVoiture)
               );
-              
+
               if (!voiture) return (
                 <Card key={vehicle.id} className="opacity-70">
                   <CardContent className="p-4 flex items-center justify-between">
@@ -734,7 +737,7 @@ export default function VehicleStep() {
                       !rentalForm.endDate ||
                       !rentalForm.pickupLocation ||
                       !rentalForm.dropoffLocation ||
-                      voiture.availability !== "available" || 
+                      voiture.availability !== "available" ||
                       dateValidationErrors.length > 0 ||
                       (state.client && state.client.nbpersonnes > voiture.capacity)
                     }
