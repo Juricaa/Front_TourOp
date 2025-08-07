@@ -99,6 +99,36 @@ export default function VehicleStep() {
     fetchVehicles();
   }, []);
 
+  // Validate vehicle dates against flight dates on rentalForm change
+  useEffect(() => {
+    if (!rentalForm.startDate || !rentalForm.endDate) {
+      setDateValidationErrors([]);
+      setDateValidationWarnings([]);
+      return;
+    }
+    
+    // Use client travel dates as fallback if no flights have specific dates
+    const clientDepartureDate = state.client?.dateTravel?.toString();
+    const clientReturnDate = state.client?.dateReturn?.toString();
+    
+    if (!clientDepartureDate || !clientReturnDate) {
+      setDateValidationErrors(["Les dates de voyage client ne sont pas définies."]);
+      setDateValidationWarnings([]);
+      return;
+    }
+
+    const validation = validateVehicleDatesAgainstTravel(
+      rentalForm.startDate,
+      rentalForm.endDate,
+      {
+        dateTravel: new Date(clientDepartureDate),
+        dateReturn: new Date(clientReturnDate)
+      }
+    );
+    setDateValidationErrors(validation.errors);
+    setDateValidationWarnings(validation.warnings);
+  }, [rentalForm.startDate, rentalForm.endDate, state.client]);
+
   const fetchVehicles = async () => {
     try {
       const response = await fetch("http://localhost:8081/api/voitures");
@@ -490,7 +520,7 @@ export default function VehicleStep() {
             </div>
           </div>
           {rentalForm.startDate && rentalForm.endDate && (
-            <div className="mt-4 p-3 bg-forest-50 rounded-lg border border-forest-200">
+            <div className="mt-4 p-3 bg-forest-50 rounded-lg border border-forest-200 mb-3">
               <span className="text-sm text-forest-700">
                 Durée de location:{" "}
                 <span className="font-medium">
@@ -502,7 +532,7 @@ export default function VehicleStep() {
 
           {/* Date validation messages */}
           {dateValidationErrors.length > 0 && (
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200 mb-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
                 <span className="text-sm font-medium text-red-700">Erreurs de dates</span>

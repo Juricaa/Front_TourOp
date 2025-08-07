@@ -359,6 +359,8 @@ export default function ActivitiesStep() {
                 onChange={(e) =>
                   setActivityForm({ ...activityForm, date: e.target.value })
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -425,7 +427,8 @@ export default function ActivitiesStep() {
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              {new Date(activity.date).toLocaleDateString("fr-FR")} {/* Ensure date is formatted correctly */}
+                              {new Date(activity.date).toLocaleDateString("fr-FR")}
+                               {/* Ensure date is formatted correctly */}
                             </span>
                             <span className="flex items-center gap-1">
                               <Users className="w-3 h-3" />
