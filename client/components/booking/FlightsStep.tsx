@@ -42,6 +42,7 @@ import { toast } from "@/hooks/use-toast";
 import { useFlightBooking } from "@/hooks/useFlightBooking";
 import { reservationService } from "@/services/reservationService";
 import { validateFlightDatesAgainstTravel, isDateWithinTravelPeriod, getDateValidationMessage } from "@/lib/enhancedDateValidation";
+import { Calendar } from "../ui/calendar";
 
 const serviceIcons: Record<string, any> = {
   "repas": Star,
