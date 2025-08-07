@@ -18,7 +18,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import type { Activite } from "@shared/types";
-
+import { useBooking } from "@/contexts/BookingContext";
 interface ActiviteFormProps {
     activite?: Activite;
     onSubmit: (data: any) => Promise<void>;
@@ -56,6 +56,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
     loading,
     isEdit = false,
 }) => {
+    const { state } = useBooking();
     const [formData, setFormData] = useState({
         name: activite?.name || "",
         category: activite?.category || categories[0],
@@ -117,6 +118,8 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, startDate: e.target.value }))
                             }
+                            min={state.client?.dateTravel?.toString()}
+                            max={state.client?.dateReturn?.toString()}
                             className="mt-1 block w-65"
                             />
                     </div>

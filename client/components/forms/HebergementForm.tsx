@@ -130,6 +130,8 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, checkIn: e.target.value }))
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -141,6 +143,8 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, checkOut: e.target.value }))
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
           </div>

@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Vol } from "@shared/types";
-
+import { useBooking } from "@/contexts/BookingContext";
 interface VolFormProps {
   vol?: Vol;
   onSubmit: (data: any) => Promise<void>;
@@ -34,7 +34,7 @@ const airlines = [
   "Air Mauritius",
   "Corsair",
 ];
-
+// const { state } = useBooking();
 const VolForm: React.FC<VolFormProps> = ({
   vol,
   onSubmit,
@@ -91,6 +91,7 @@ const VolForm: React.FC<VolFormProps> = ({
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, airline: value }))
               }
+              
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choisir une compagnie" />

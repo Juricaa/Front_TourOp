@@ -118,6 +118,8 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -129,6 +131,8 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
           </div>
