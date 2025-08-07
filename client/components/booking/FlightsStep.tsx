@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +105,7 @@ export default function FlightsStep() {
   // Close create flight dialog after adding a flight
   useEffect(() => {
     if (!createLoading && isCreateDialogOpen) {
-      setIsCreateDialogOpen(false);
+      setIsCreateDialogOpen(true  );
     }
   }, [createLoading, isCreateDialogOpen]);
   const [displayAllFlights, setDisplayAllFlights] = useState(false);
@@ -256,7 +257,7 @@ export default function FlightsStep() {
     );
 
     if (result.success) {
-      updateFlight(flightId, tempPassengers, result.data.newPrice);
+      updateFlight(flightId, tempPassengers, result.data?.newPrice || 0);
       setEditingFlightId(null);
     }
   };
