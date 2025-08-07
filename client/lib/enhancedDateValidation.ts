@@ -11,6 +11,12 @@ export interface FlightValidationResult {
   warnings: string[];
 }
 
+export interface AccommodationValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
 export const validateFlightDatesAgainstTravel = (
   flightDeparture: Date | string,
   flightReturn: Date | string,
@@ -105,4 +111,49 @@ export const isDateWithinTravelPeriod = (
 
   return (isAfter(checkDate, travelStart) || isEqual(checkDate, travelStart)) && 
          (isBefore(checkDate, travelEnd) || isEqual(checkDate, travelEnd));
+};
+
+export const validateAccommodationDatesAgainstFlight = (
+  checkIn: Date | string,
+  checkOut: Date | string,
+  flightDeparture: Date | string,
+  flightReturn: Date | string
+): AccommodationValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  const depDate = typeof flightDeparture === 'string' ? parseISO(flightDeparture) : flightDeparture;
+  const retDate = typeof flightReturn === 'string' ? parseISO(flightReturn) : flightReturn;
+  const inDate = typeof checkIn === 'string' ? parseISO(checkIn) : checkIn;
+  const outDate = typeof checkOut === 'string' ? parseISO(checkOut) : checkOut;
+
+  if (isBefore(inDate, depDate)) {
+    errors.push(`La date d'arrivée à l'hébergement ne peut pas être avant la date de départ du vol (${format(depDate, 'dd/MM/yyyy')})`);
+  }
+
+  if (isAfter(outDate, retDate)) {
+    errors.push(`La date de départ de l'hébergement ne peut pas être après la date de retour du vol (${format(retDate, 'dd/MM/yyyy')})`);
+  }
+
+  if (isAfter(inDate, outDate)) {
+    errors.push("La date d'arrivée ne peut pas être après la date de départ de l'hébergement");
+  }
+
+  // Warnings for dates close to flight dates
+  const daysBeforeFlight = Math.abs(inDate.getTime() - depDate.getTime()) / (1000 * 3600 * 24);
+  const daysAfterFlightReturn = Math.abs(outDate.getTime() - retDate.getTime()) / (1000 * 3600 * 24);
+
+  if (daysBeforeFlight < 1) {
+    warnings.push("L'arrivée à l'hébergement est très proche de la date de départ du vol");
+  }
+
+  if (daysAfterFlightReturn < 1) {
+    warnings.push("Le départ de l'hébergement est très proche de la date de retour du vol");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  };
 };

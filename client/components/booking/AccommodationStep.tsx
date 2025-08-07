@@ -34,12 +34,15 @@ import {
   Waves,
   ChevronDown, // Added for "Show More"
   ChevronUp,   // Added for "Show Less"
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { useBooking } from "@/contexts/BookingContext";
 import { reservationService } from "@/services/reservationService";
 import type { Hebergement, Reservation } from "@shared/types";
 import type { BookingAccommodation } from "@shared/booking";
 import { useAccommodationBooking } from "@/hooks/useAccommodationBooking"; // Importez le nouveau hook
+import { validateAccommodationDatesAgainstFlight } from "@/lib/enhancedDateValidation";
 
 // --- Constants and Utility Functions (restent en dehors) ---
 
@@ -111,6 +114,41 @@ export default function AccommodationStep() {
   });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [dateValidationErrors, setDateValidationErrors] = useState<string[]>([]);
+  const [dateValidationWarnings, setDateValidationWarnings] = useState<string[]>([]);
+
+  // Validate accommodation dates against flight dates on bookingForm change
+  useEffect(() => {
+    if (!bookingForm.checkIn || !bookingForm.checkOut) {
+      setDateValidationErrors([]);
+      setDateValidationWarnings([]);
+      return;
+    }
+    if (state.flights.length === 0) {
+      setDateValidationErrors(["Veuillez d'abord sélectionner un vol avec des dates valides."]);
+      setDateValidationWarnings([]);
+      return;
+    }
+    
+    // Use client travel dates as fallback if no flights have specific dates
+    const clientDepartureDate = state.client?.dateTravel?.toString();
+    const clientReturnDate = state.client?.dateReturn?.toString();
+    
+    if (!clientDepartureDate || !clientReturnDate) {
+      setDateValidationErrors(["Les dates de voyage client ne sont pas définies."]);
+      setDateValidationWarnings([]);
+      return;
+    }
+
+    const validation = validateAccommodationDatesAgainstFlight(
+      bookingForm.checkIn,
+      bookingForm.checkOut,
+      clientDepartureDate as string,
+      clientReturnDate as string
+    );
+    setDateValidationErrors(validation.errors);
+    setDateValidationWarnings(validation.warnings);
+  }, [bookingForm.checkIn, bookingForm.checkOut, state.client]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -401,6 +439,8 @@ export default function AccommodationStep() {
                 onChange={(e) =>
                   setBookingForm({ ...bookingForm, checkIn: e.target.value })
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -412,6 +452,8 @@ export default function AccommodationStep() {
                 onChange={(e) =>
                   setBookingForm({ ...bookingForm, checkOut: e.target.value })
                 }
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -464,6 +506,34 @@ export default function AccommodationStep() {
                   nuit(s)
                 </span>
               </span>
+            </div>
+          )}
+
+          {dateValidationErrors.length > 0 && (
+            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-700">Erreurs de dates</span>
+              </div>
+              <ul className="list-disc list-inside text-sm text-red-600 mt-1">
+                {dateValidationErrors.map((error, idx) => (
+                  <li key={idx}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {dateValidationWarnings.length > 0 && (
+            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-700">Avertissements</span>
+              </div>
+              <ul className="list-disc list-inside text-sm text-yellow-600 mt-1">
+                {dateValidationWarnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </ul>
             </div>
           )}
         </CardContent>
@@ -826,20 +896,43 @@ export default function AccommodationStep() {
                     disabled={
                       !bookingForm.checkIn ||
                       !bookingForm.checkOut ||
-                      bookingForm.guests > hebergement.capacity
+                      bookingForm.guests > hebergement.capacity ||
+                      dateValidationErrors.length > 0
                     } className="w-full"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {bookingForm.guests > hebergement.capacity
                       ? "Capacité insuffisante"
-                      : !bookingForm.checkIn || !bookingForm.checkOut
-                        ? "Sélectionner les dates"
-                        : `Ajouter (${formatCurrency(totalPrice)} Ar)`}
+                      : dateValidationErrors.length > 0
+                        ? "Dates invalides"
+                        : !bookingForm.checkIn || !bookingForm.checkOut
+                          ? "Sélectionner les dates"
+                          : `Ajouter (${formatCurrency(totalPrice)} Ar)`}
                   </Button>
                 </CardContent>
               </Card>
             );
           })}
+
+          {dateValidationErrors.length > 0 && (
+            <div className="p-3 bg-red-100 text-red-700 rounded-md mt-2">
+              <ul className="list-disc list-inside text-sm">
+                {dateValidationErrors.map((error, idx) => (
+                  <li key={idx}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {dateValidationWarnings.length > 0 && (
+            <div className="p-3 bg-yellow-100 text-yellow-700 rounded-md mt-2">
+              <ul className="list-disc list-inside text-sm">
+                {dateValidationWarnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
         </div>
         
