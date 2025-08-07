@@ -1,4 +1,4 @@
-// VehicleStep.tsx
+// VehicleStep.tsx - Complete implementation with enhanced validation
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
   Car,
   Plus,
   Trash2,
-  Star, // Fallback icon for features
+  Star,
   MapPin,
   Calendar,
   Users,
@@ -27,12 +27,15 @@ import {
   X,
   ChevronUp,
   ChevronDown,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 import { useBooking } from "@/contexts/BookingContext";
-import { useVehicleBooking } from "@/hooks/useVehicleBooking"; // Importez votre nouveau hook
+import { useVehicleBooking } from "@/hooks/useVehicleBooking";
 import type { Voiture } from "@shared/types";
 import type { BookingVehicle } from "@shared/booking";
 import { reservationService } from "@/services/reservationService";
+import { validateVehicleDatesAgainstTravel } from "@/lib/enhancedDateValidation";
 
 const featureIcons: Record<string, any> = {
   climatisation: Settings,
@@ -43,7 +46,6 @@ const featureIcons: Record<string, any> = {
   "4x4": Car,
   "boîte automatique": Settings,
   économique: Fuel,
-  // Ajoutez d'autres icônes pour vos fonctionnalités si besoin
 };
 
 const vehicleTypes = [
@@ -68,8 +70,8 @@ const locations = [
 ];
 
 export default function VehicleStep() {
-  const { state, removeVehicle } = useBooking(); // Supprimez addVehicle d'ici, il est géré par useVehicleBooking
-  const { creerEtAjouterReservationVehicule } = useVehicleBooking(); // Utilisez le nouveau hook
+  const { state, removeVehicle } = useBooking();
+  const { creerEtAjouterReservationVehicule } = useVehicleBooking();
 
   const [availableVehicles, setAvailableVehicles] = useState<Voiture[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +92,8 @@ export default function VehicleStep() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [displayAllVehicles, setDisplayAllVehicles] = useState(false);
+  const [dateValidationWarnings, setDateValidationWarnings] = useState<string[]>([]);
+  const [dateValidationErrors, setDateValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     fetchVehicles();
@@ -120,28 +124,83 @@ export default function VehicleStep() {
     }
   };
 
-  // Cette fonction est désormais obsolète car le calcul sera fait par useVehicleBooking
-  // const calculateDays = (startDate: string, endDate: string) => {
-  //   if (!startDate || !endDate) return 0;
-  //   const start = new Date(startDate);
-  //   const end = new Date(endDate);
-  //   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  // };
+  const validateVehicleDates = () => {
+    if (!rentalForm.startDate || !rentalForm.endDate) {
+      setDateValidationErrors(["Veuillez sélectionner les dates de début et de fin de location."]);
+      setDateValidationWarnings([]);
+      return false;
+    }
 
-  // Cette fonction est également obsolète
-  // const calculatePrice = (voiture: Voiture, days: number) => {
-  //   return voiture.pricePerDay * days;
-  // };
+    const validation = validateVehicleDatesAgainstTravel(
+      rentalForm.startDate,
+      rentalForm.endDate,
+      {
+        dateTravel: state.client?.dateTravel || new Date(),
+        dateReturn: state.client?.dateReturn || new Date()
+      }
+    );
 
-  // Note: La fonction `calculerJoursLocation` du hook `useVehicleBooking` ajoute +1 jour
-  // Par conséquent, adaptons la fonction locale si elle est toujours utilisée pour l'affichage uniquement.
+    setDateValidationErrors(validation.errors);
+    setDateValidationWarnings(validation.warnings);
+    return validation.isValid;
+  };
+
+  const handleAddVehicle = async (voiture: Voiture) => {
+    if (!validateVehicleDates()) return;
+
+    if (voiture.availability !== "available") {
+      toast({
+        title: "Véhicule non disponible",
+        description: "Ce véhicule n'est pas disponible pour la réservation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (state.client && state.client.nbpersonnes > voiture.capacity) {
+      toast({
+        title: "Capacité insuffisante",
+        description: `Ce véhicule ne peut accueillir que ${voiture.capacity} personnes. Votre client a ${state.client.nbpersonnes} personnes.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await creerEtAjouterReservationVehicule(voiture, {
+      startDate: rentalForm.startDate,
+      endDate: rentalForm.endDate,
+      pickupLocation: rentalForm.pickupLocation,
+      dropoffLocation: rentalForm.dropoffLocation,
+    });
+
+    if (result.success) {
+      toast({
+        title: "Véhicule ajouté",
+        description: "Le véhicule a été ajouté avec succès.",
+      });
+      fetchVehicles();
+    } else {
+      toast({
+        title: "Erreur",
+        description: result.error || "Erreur lors de l'ajout du véhicule.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const getDisplayDays = (startDate: string, endDate: string): number => {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1; // Inclut le jour de début et de fin
+    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   };
-
 
   const getAvailabilityText = (availability: string) => {
     switch (availability) {
@@ -169,66 +228,11 @@ export default function VehicleStep() {
     }
   };
 
-  const handleAddVehicle = async (voiture: Voiture) => {
-    if (!rentalForm.startDate || !rentalForm.endDate) {
-      toast({
-        title: "Dates manquantes",
-        description: "Veuillez sélectionner les dates de début et de fin de location.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (voiture.availability !== "available") {
-      toast({
-        title: "Véhicule non disponible",
-        description: "Ce véhicule n'est pas disponible pour la réservation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Le contrôle de capacité est géré ici avant l'appel au service de réservation si vous voulez empêcher l'ajout au panier.
-    if (state.client && state.client.nbpersonnes > voiture.capacity) {
-      toast({
-        title: "Capacité insuffisante",
-        description: `Ce véhicule ne peut accueillir que ${voiture.capacity} personnes. Votre client a ${state.client.nbpersonnes} personnes.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Utilisez le hook pour créer la réservation et l'ajouter au contexte
-    const result = await creerEtAjouterReservationVehicule(voiture, {
-      startDate: rentalForm.startDate,
-      endDate: rentalForm.endDate,
-      pickupLocation: rentalForm.pickupLocation,
-      dropoffLocation: rentalForm.dropoffLocation,
-    });
-
-    if (result.success) {
-      // Le toast de succès est déjà géré dans le hook
-      // Si la voiture était le dernier élément disponible, il faudrait re-fetch les véhicules
-      fetchVehicles(); // Rafraîchir la liste des véhicules après la réservation
-    } else {
-      // Le toast d'erreur est déjà géré dans le hook
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const handleRemoveVehicle = useCallback(
     async (vehicleId: string, reservationIdToDelete: string) => {
       try {
-        const reservationId = reservationIdToDelete; // Use the direct reservationId
-        const response = await reservationService.deleteReservation(
-          reservationId,
-        );
+        const reservationId = reservationIdToDelete;
+        const response = await reservationService.deleteReservation(reservationId);
         if (response.success) {
           removeVehicle(vehicleId);
           toast({
@@ -254,14 +258,12 @@ export default function VehicleStep() {
     },
     [removeVehicle],
   );
+
   const handleCreateVehicle = async (data: any) => {
     setCreateLoading(true);
     try {
       const response = await voitureService.createVoiture(data);
       if (response.success && response.data) {
-        // Après la création, le véhicule n'est pas directement "réservé" mais ajouté à la liste des disponibles.
-        // Si vous voulez le réserver directement après création, vous devrez appeler creerEtAjouterReservationVehicule ici.
-        // Pour l'instant, nous nous contentons de rafraîchir la liste.
         const newVehicle = response.data;
 
         const reservationResult = await creerEtAjouterReservationVehicule(newVehicle, {
@@ -272,21 +274,18 @@ export default function VehicleStep() {
         });
 
         if (reservationResult.success) {
-          // Toast déjà géré par createAndAddReservation
           setIsCreateDialogOpen(false);
         } else {
           toast({
-            title: "Erreur de création d'hébergement",
+            title: "Erreur de création",
             description:
               reservationResult.error ||
-              "Erreur lors de la réservation du nouvel hébergement.",
+              "Erreur lors de la réservation du nouveau véhicule.",
             variant: "destructive",
           });
         }
 
         await fetchVehicles();
-
-
       } else {
         toast({
           title: "Erreur",
@@ -306,13 +305,11 @@ export default function VehicleStep() {
     }
   };
 
-  // Get unique features from available vehicles
   const getAvailableFeatures = () => {
     const allFeatures = availableVehicles.flatMap((v) => v.features || []);
     return [...new Set(allFeatures)].filter(Boolean);
   };
 
-  // Toggle feature filter
   const toggleFeatureFilter = (feature: string) => {
     setSelectedFeatures((prev) =>
       prev.includes(feature)
@@ -321,7 +318,6 @@ export default function VehicleStep() {
     );
   };
 
-  // Clear all filters
   const clearAllFilters = () => {
     setSearchTerm("");
     setTypeFilter("Tous");
@@ -330,10 +326,8 @@ export default function VehicleStep() {
     setSelectedFeatures([]);
   };
 
-  // Filter vehicles based on all criteria
   const filteredVehicles = availableVehicles
     .filter((voiture) => {
-      // Search filter - search in brand, model, description and location
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         searchTerm === "" ||
@@ -343,20 +337,16 @@ export default function VehicleStep() {
         voiture.location.toLowerCase().includes(searchLower) ||
         voiture.vehicleType.toLowerCase().includes(searchLower);
 
-      // Type filter
       const matchesType =
         typeFilter === "Tous" || voiture.vehicleType === typeFilter;
 
-      // Location filter
       const matchesLocation =
         locationFilter === "Tous" || voiture.location === locationFilter;
 
-      // Availability filter
       const matchesAvailability =
         availabilityFilter === "Tous" ||
         voiture.availability === availabilityFilter;
 
-      // Features filter
       const matchesFeatures =
         selectedFeatures.length === 0 ||
         selectedFeatures.every((feature) =>
@@ -372,7 +362,6 @@ export default function VehicleStep() {
       );
     })
     .sort((a, b) => {
-      // Sort by availability first (available first), then by price
       if (a.availability === "available" && b.availability !== "available")
         return -1;
       if (a.availability !== "available" && b.availability === "available")
@@ -406,10 +395,37 @@ export default function VehicleStep() {
     );
   }
 
-
-
   return (
     <div className="space-y-6">
+      {/* Date validation messages */}
+      {dateValidationErrors.length > 0 && (
+        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <span className="text-sm font-medium text-red-700">Erreurs de dates</span>
+          </div>
+          <ul className="list-disc list-inside text-sm text-red-600 mt-1">
+            {dateValidationErrors.map((error, idx) => (
+              <li key={idx}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {dateValidationWarnings.length > 0 && (
+        <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-700">Avertissements</span>
+          </div>
+          <ul className="list-disc list-inside text-sm text-yellow-600 mt-1">
+            {dateValidationWarnings.map((warning, idx) => (
+              <li key={idx}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Formulaire de Location */}
       <Card>
         <CardHeader>
@@ -423,9 +439,13 @@ export default function VehicleStep() {
                 id="startDate"
                 type="date"
                 value={rentalForm.startDate}
-                onChange={(e) =>
-                  setRentalForm({ ...rentalForm, startDate: e.target.value })
-                }
+                onChange={(e) => {
+                  setRentalForm({ ...rentalForm, startDate: e.target.value });
+                  setDateValidationErrors([]);
+                  setDateValidationWarnings([]);
+                }}
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -434,9 +454,13 @@ export default function VehicleStep() {
                 id="endDate"
                 type="date"
                 value={rentalForm.endDate}
-                onChange={(e) =>
-                  setRentalForm({ ...rentalForm, endDate: e.target.value })
-                }
+                onChange={(e) => {
+                  setRentalForm({ ...rentalForm, endDate: e.target.value });
+                  setDateValidationErrors([]);
+                  setDateValidationWarnings([]);
+                }}
+                min={state.client?.dateTravel?.toString()}
+                max={state.client?.dateReturn?.toString()}
               />
             </div>
             <div className="space-y-2">
@@ -497,8 +521,7 @@ export default function VehicleStep() {
               <span className="text-sm text-forest-700">
                 Durée de location:{" "}
                 <span className="font-medium">
-                  {getDisplayDays(rentalForm.startDate, rentalForm.endDate)}{" "}
-                  jour(s)
+                  {getDisplayDays(rentalForm.startDate, rentalForm.endDate)} jour(s)
                 </span>
               </span>
             </div>
@@ -515,16 +538,9 @@ export default function VehicleStep() {
           <div className="space-y-3">
             {state.vehicles.map((vehicle) => {
               const voiture = availableVehicles.find((v) =>
-                // Comparez l'ID de la voiture à l'ID du véhicule de booking.
-                // Si l'ID de booking est l'ID de réservation, vous devrez peut-être stocker l'idVoiture aussi dans BookingVehicle.
-                // Pour l'instant, je suppose que vehicle.id correspond à idVoiture pour la recherche visuelle.
-                // Si vehicle.id est l'idReservation, il faut adapter cette logique.
-                // J'ai mis à jour BookingVehicle pour avoir un reservationId et un id (qui peut être l'idVoiture ou un id temporaire)
                 vehicle.id === v.idVoiture || vehicle.id.startsWith(v.idVoiture)
               );
-              // Si la voiture n'est plus dans `availableVehicles` (ex: elle a été supprimée ou n'a jamais été chargée),
-              // vous pourriez vouloir afficher un message ou une version simplifiée.
-              // Ici, on renvoie `null` si la voiture n'est pas trouvée, mais un meilleur UX serait de gérer ce cas.
+              
               if (!voiture) return (
                 <Card key={vehicle.id} className="opacity-70">
                   <CardContent className="p-4 flex items-center justify-between">
@@ -541,8 +557,6 @@ export default function VehicleStep() {
                 </Card>
               );
 
-              const extractSimpleId = (objectId: string): string => objectId.split("-")[0];
-
               return (
                 <Card key={vehicle.id}>
                   <CardContent className="p-4">
@@ -558,9 +572,7 @@ export default function VehicleStep() {
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              {new Date(vehicle.startDate).toLocaleDateString(
-                                "fr-FR",
-                              )} - {new Date(vehicle.endDate).toLocaleDateString("fr-FR")}
+                              {new Date(vehicle.startDate).toLocaleDateString("fr-FR")} - {new Date(vehicle.endDate).toLocaleDateString("fr-FR")}
                             </span>
                             <span className="flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
@@ -577,11 +589,10 @@ export default function VehicleStep() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          // onClick={() => removeVehicle(vehicle.id)}
                           onClick={() =>
                             handleRemoveVehicle(
                               vehicle.id,
-                              vehicle.reservationId || extractSimpleId(vehicle.id),
+                              vehicle.reservationId || vehicle.id.split("-")[0],
                             )
                           }
                           className="text-destructive hover:text-destructive"
@@ -597,160 +608,6 @@ export default function VehicleStep() {
           </div>
         </div>
       )}
-
-      {/* Section Filtres Avancés */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Recherche et Filtres
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                {showAdvancedFilters ? "Masquer" : "Filtres avancés"}
-              </Button>
-              {(searchTerm ||
-                typeFilter !== "Tous" ||
-                locationFilter !== "Tous" ||
-                availabilityFilter !== "Tous" ||
-                selectedFeatures.length > 0) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="text-muted-foreground"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Effacer
-                  </Button>
-                )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Filtres de base */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un véhicule..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Type de véhicule" />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicleTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Localisation" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={availabilityFilter}
-              onValueChange={setAvailabilityFilter}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Disponibilité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Tous">Tous</SelectItem>
-                <SelectItem value="available">Disponible</SelectItem>
-                <SelectItem value="unavailable">Non disponible</SelectItem>
-                <SelectItem value="maintenance">En maintenance</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtres avancés */}
-          {showAdvancedFilters && (
-            <div className="border-t pt-4">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    Équipements
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {getAvailableFeatures().map((feature) => (
-                      <Button
-                        key={feature}
-                        variant={
-                          selectedFeatures.includes(feature)
-                            ? "default"
-                            : "outline"
-                        }
-                        size="sm"
-                        onClick={() => toggleFeatureFilter(feature)}
-                        className="text-xs"
-                      >
-                        {featureIcons[feature] && (
-                          <span className="w-3 h-3 mr-1">
-                            {React.createElement(featureIcons[feature], {
-                              className: "w-3 h-3",
-                            })}
-                          </span>
-                        )}
-                        {feature}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                  <div className="text-center p-3 bg-muted/30 rounded-lg">
-                    <div className="font-semibold text-lg">
-                      {filteredVehicles.length}
-                    </div>
-                    <div className="text-muted-foreground">Résultats</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/30 rounded-lg">
-                    <div className="font-semibold text-lg">
-                      {
-                        filteredVehicles.filter(
-                          (v) => v.availability === "available",
-                        ).length
-                      }
-                    </div>
-                    <div className="text-muted-foreground">Disponibles</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/30 rounded-lg">
-                    <div className="font-semibold text-lg">
-                      {filteredVehicles.filter((v) => v.driverIncluded).length}
-                    </div>
-                    <div className="text-muted-foreground">Avec chauffeur</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Véhicules disponibles */}
       <div>
@@ -773,15 +630,14 @@ export default function VehicleStep() {
         </div>
 
         <div className="space-y-4 pr-2" style={{
-          maxHeight: displayAllVehicles ? "none" : "600px", // Show all or limit height
-          overflowY: displayAllVehicles ? "visible" : "auto", // Enable scroll if not showing all
+          maxHeight: displayAllVehicles ? "none" : "600px",
+          overflowY: displayAllVehicles ? "visible" : "auto",
         }}>
           {filteredVehicles.map((voiture) => {
             const displayDays = getDisplayDays(
               rentalForm.startDate,
               rentalForm.endDate,
             );
-            // Calculer le prix total pour l'affichage seulement
             const totalPriceForDisplay = displayDays > 0 ? voiture.pricePerDay * displayDays : 0;
 
             return (
@@ -878,7 +734,8 @@ export default function VehicleStep() {
                       !rentalForm.endDate ||
                       !rentalForm.pickupLocation ||
                       !rentalForm.dropoffLocation ||
-                      voiture.availability !== "available" || // Désactiver si non disponible
+                      voiture.availability !== "available" || 
+                      dateValidationErrors.length > 0 ||
                       (state.client && state.client.nbpersonnes > voiture.capacity)
                     }
                     className="w-full"
@@ -894,7 +751,9 @@ export default function VehicleStep() {
                           ? `${getAvailabilityText(voiture.availability)}`
                           : state.client && state.client.nbpersonnes > voiture.capacity
                             ? "Capacité insuffisante"
-                            : `Ajouter (${formatCurrency(totalPriceForDisplay)} Ar)`
+                            : dateValidationErrors.length > 0
+                              ? "Dates invalides"
+                              : `Ajouter (${formatCurrency(totalPriceForDisplay)} Ar)`
                     }
                   </Button>
                 </CardContent>
@@ -903,62 +762,39 @@ export default function VehicleStep() {
           })}
         </div>
 
-        {filteredVehicles.length > 3 && (
-          <div className="text-center mt-6">
+        {filteredVehicles.length === 0 && availableVehicles.length > 0 && (
+          <div className="text-center py-8 bg-muted/30 rounded-lg">
+            <Search className="mx-auto h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mt-2 text-sm font-medium text-foreground">
+              Aucun véhicule trouvé
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Essayez de modifier vos critères de recherche
+            </p>
             <Button
               variant="outline"
-              onClick={() => setDisplayAllVehicles(!displayAllVehicles)}
+              size="sm"
+              onClick={clearAllFilters}
+              className="mt-3"
             >
-              {displayAllVehicles ? (
-                <>
-                  <ChevronUp className="w-4 h-4 mr-2" />
-                  Afficher moins
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-4 h-4 mr-2" />
-                  Afficher plus ({filteredVehicles.length - 3} de plus)
-                </>
-              )}
+              <X className="w-4 h-4 mr-2" />
+              Effacer tous les filtres
             </Button>
           </div>
         )}
 
+        {state.vehicles.length === 0 && (
+          <div className="text-center py-8 bg-muted/30 rounded-lg">
+            <Car className="mx-auto h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mt-2 text-sm font-medium text-foreground">
+              Aucun véhicule sélectionné
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ajoutez un véhicule pour continuer
+            </p>
+          </div>
+        )}
       </div>
-      {filteredVehicles.length === 0 && availableVehicles.length > 0 && (
-        <div className="text-center py-8 bg-muted/30 rounded-lg">
-          <Search className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-2 text-sm font-medium text-foreground">
-            Aucun véhicule trouvé
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Essayez de modifier vos critères de recherche
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearAllFilters}
-            className="mt-3"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Effacer tous les filtres
-          </Button>
-        </div>
-      )}
-
-
-
-      {state.vehicles.length === 0 && (
-        <div className="text-center py-8 bg-muted/30 rounded-lg">
-          <Car className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-2 text-sm font-medium text-foreground">
-            Aucun véhicule sélectionné
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Ajoutez un véhicule pour continuer
-          </p>
-        </div>
-      )}
     </div>
   );
 }
