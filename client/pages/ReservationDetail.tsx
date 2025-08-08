@@ -505,7 +505,7 @@ export default function ReservationDetail() {
         date_debut={date_debut}
         date_fin={date_fin}
         onInvoiceOpen={() => setIsInvoiceOpen(true)}
-        onEdit={() => navigate(`/reservations/${reservation.id}/edit`)}
+        onEdit={() => navigate(`/reservations/${factureId}/edit`)}
         onDelete={handleDelete}
       // onView={function (type: "invoice" | "plan"): void {
       //   throw new Error("Function not implemented.");
