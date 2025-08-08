@@ -93,6 +93,7 @@ export default function ReservationDetail() {
   useEffect(() => {
     const loadInitialData = async () => {
       if (id) {
+       
         await fetchReservation(id);
       }
 
@@ -114,13 +115,13 @@ export default function ReservationDetail() {
       const response = await fetch(url.toString());
       const data = await response.json();
       if (response.ok && data.success) {
-        console.log("donnée vierge:", data.data)
-        const aggregatedReservation = transformBackendDataToReservation(data.data);
-        setReservation(aggregatedReservation);
-        console.log("data traité:", aggregatedReservation)
         if (reservationId) {
           fetchClient(reservationId);
         }
+        console.log("donnée vierge:", data.data)
+        const aggregatedReservation = transformBackendDataToReservation(data.data, reservationId );
+        setReservation(aggregatedReservation);
+        console.log("data traité:", aggregatedReservation)
       } else {
         setError("Réservation non trouvée");
       }
@@ -146,17 +147,18 @@ export default function ReservationDetail() {
       const data = await response.json();
       if (data.success) {
         setClient(data.data);
+      
       }
     } catch (error) {
       console.error("Error fetching client:", error);
     }
   };
 
-  const transformBackendDataToReservation = (backendData: any[]): SingleReservation => {
+  const transformBackendDataToReservation = (backendData: any[], id: string): SingleReservation => {
 
     const aggregatedReservation: SingleReservation = {
       id: "AGG_" + Date.now().toString(),
-      clientId: "",
+      clientId: id,
       status: "",
       totalPrice: 0,
       currency: "",
@@ -387,7 +389,7 @@ export default function ReservationDetail() {
     const taxRate = 0.20;
     const taxAmount = subtotal * taxRate;
     const total = subtotal + taxAmount;
-
+      
     return {
       number: invoiceNumber,
       clientName: client.name,
@@ -408,8 +410,7 @@ export default function ReservationDetail() {
 
   const getTravelPlanData = (): TravelPlan | null => {
     if (!reservation || !client) {
-      console.error("Données manquantes - Client:", client, "Reservation:", reservation);
-      return null;
+        return null;
     }
 
     return {
@@ -505,7 +506,10 @@ export default function ReservationDetail() {
         date_debut={date_debut}
         date_fin={date_fin}
         onInvoiceOpen={() => setIsInvoiceOpen(true)}
-        onEdit={() => navigate(`/reservations/${factureId}/edit`)}
+        onEdit={() => {
+                    console.log("Navigating to edit with reservation data:", reservation);
+                    navigate(`/reservations/${factureId}/edit`, { state: { reservation, client} });
+                 }}
         onDelete={handleDelete}
       // onView={function (type: "invoice" | "plan"): void {
       //   throw new Error("Function not implemented.");

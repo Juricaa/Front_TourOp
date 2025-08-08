@@ -29,6 +29,7 @@ interface Invoice {
   issueDate: string;
   dueDate: string;
   status: string;
+  paymentStatus : string;
   items: InvoiceItem[];
   subtotal: number;
   taxRate: number;
@@ -196,10 +197,10 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
               <div class="invoice-title">Facture ${invoice.number}</div>
               <div class="invoice-meta">
                 Date : ${formatDate(invoice.date_created)}<br/>
-                Statut: <span class="status-badge" style="background-color: ${invoice.status === 'paid' ? '#dcfce7' : invoice.status === 'pending' ? '#fef9c3' : '#fee2e2'}; 
-                                  color: ${invoice.status === 'paid' ? '#166534' : invoice.status === 'pending' ? '#854d0e' : '#991b1b'};
-                                  border: 1px solid ${invoice.status === 'paid' ? '#bbf7d0' : invoice.status === 'pending' ? '#fef08a' : '#fecaca'};">
-                        ${statusLabels[invoice.status] || invoice.status}
+                Statut: <span class="status-badge" style="background-color: ${invoice.status === 'payé' ? '#dcfce7' : invoice.status === 'en_attente' ? '#fef9c3' : '#fee2e2'}; 
+                                  color: ${invoice.status === 'payé' ? '#166534' : invoice.status === 'en_attente' ? '#854d0e' : '#991b1b'};
+                                  border: 1px solid ${invoice.status === 'payé' ? '#bbf7d0' : invoice.status === 'en_attente' ? '#fef08a' : '#fecaca'};">
+                        ${statusLabels[invoice.paymentStatus] || invoice.paymentStatus}
                       </span>
               </div>
             </div>
@@ -372,6 +373,7 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
             Facture {invoice.number} <br />
           </DialogTitle>
           <DialogDescription >
+            stauts {invoice.paymentStatus} <br />
             Date : {format(new Date(invoice.date_created), "dd/MM/yyyy", { locale: fr })}  <br />
             Détails de la facture pour {invoice.clientName} <br />
             le {format(new Date(invoice.travelStartDate), "dd/MM/yyyy", { locale: fr })} à {format(new Date(invoice.travelEndDate), "dd/MM/yyyy", { locale: fr })}

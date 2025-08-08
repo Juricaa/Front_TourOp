@@ -39,25 +39,27 @@ import { activiteService } from "@/services/activiteService";
 import FullReservationEditor from "@/components/FullReservationEditor";
 import type { Reservation, Client, Vol, Hebergement, Voiture, Activite } from "@shared/types";
 import { API_BASE_URL } from "@/services/apiConfig";
+import {  useLocation } from "react-router-dom";
+import { factureService } from "@/services/factureService";
 
 const statusOptions = [
   {
-    value: "pending",
+    value: "en_attente",
     label: "En attente",
     color: "bg-yellow-100 text-yellow-800",
   },
   {
-    value: "confirmed",
+    value: "confirmé",
     label: "Confirmée",
     color: "bg-green-100 text-green-800",
   },
-  { value: "cancelled", label: "Annulée", color: "bg-red-100 text-red-800" },
+  { value: "en_cours", label: "En cours", color: "bg-red-100 text-red-800" },
   { value: "completed", label: "Terminée", color: "bg-blue-100 text-blue-800" },
 ];
 
 const paymentStatusOptions = [
   {
-    value: "pending",
+    value: "en_attente",
     label: "En attente",
     color: "bg-yellow-100 text-yellow-800",
   },
@@ -66,19 +68,22 @@ const paymentStatusOptions = [
     label: "Partiel",
     color: "bg-orange-100 text-orange-800",
   },
-  { value: "paid", label: "Payé", color: "bg-green-100 text-green-800" },
-  { value: "refunded", label: "Remboursé", color: "bg-gray-100 text-gray-800" },
+  { value: "payé", label: "Payé", color: "bg-green-100 text-green-800" },
+  { value: "remboursé", label: "Remboursé", color: "bg-gray-100 text-gray-800" },
 ];
 
 export default function EditReservationComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [reservation, setReservation] = useState<Reservation | null>(null);
+ 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("quick");
+  const location = useLocation();
+  const reservationData = location.state?.reservation;
   
   // Data for full editor
   const [clients, setClients] = useState<Client[]>([]);
@@ -92,31 +97,49 @@ export default function EditReservationComplete() {
     vehicles: [] as string[],
     activities: [] as string[],
   });
-
+ 
   const [formData, setFormData] = useState({
     status: "",
     notes: "",
-    totalPrice: 0,
+    totalPrice: "",
     paymentStatus: "",
     deposit: 0,
     dateTravel: "",
     dateReturn: "",
     participants: 1,
     clientId: "",
+    dateCreated: new Date(""),
   });
 
   useEffect(() => {
+    
     if (id) {
+      console.log("Received reservation:", reservationData);
       fetchReservation(id);
       fetchServiceData();
+    
     }
-  }, [id]);
+
+    const handleKeyDown = (event) => {
+      // Vérifie si Alt est pressé + flèche gauche
+      if (event.altKey && event.key === "ArrowLeft") {
+        navigate(-1); // Va à la page précédente dans l'historique
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [id, navigate]);
 
   const fetchReservation = async (reservationId: string) => {
-    try {
-      const response = await reservationService.getReservation(reservationId);
+    try {  
+      
+      const response = await factureService.getFacture(reservationId );
+      console.log(response)
       if (response.success && response.data) {
-        setReservation(response.data);
+        setReservation(reservationData);
+        fetchClient (reservationData.clientId);
+        
         setFormData({
           status: response.data.status,
           notes: response.data.notes || "",
@@ -124,17 +147,19 @@ export default function EditReservationComplete() {
           paymentStatus: response.data.paymentStatus || "pending",
           deposit: response.data.deposit || 0,
           dateTravel: response.data.dateTravel.split('T')[0],
-          dateReturn: response.data.dateReturn ? response.data.dateReturn.split('T')[0] : "",
-          participants: response.data.participants || 1,
+          dateReturn: response.data.dateReturn.split('T')[0],
+          participants: response.data.clientId.nbpersonnes || 1,
           clientId: response.data.clientId,
+          dateCreated: response.data.dateCreated,
+
         });
         
         // Initialize selected services
         setSelectedServices({
-          flights: (response.data.vols || []).map((v: any) => v.id || v),
-          accommodations: (response.data.hebergements || []).map((h: any) => h.id || h),
-          vehicles: (response.data.voitures || []).map((v: any) => v.id || v),
-          activities: (response.data.activites || []).map((a: any) => a.id || a),
+          flights: (reservationData.vols || []).map((v: any) => v.id || v),
+          accommodations: (reservationData.hebergements || []).map((h: any) => h.id || h),
+          vehicles: (reservationData.voitures || []).map((v: any) => v.id || v),
+          activities: (reservationData.activites || []).map((a: any) => a.id || a),
         });
       } else {
         setError(response.error || "Réservation non trouvée");
@@ -144,6 +169,19 @@ export default function EditReservationComplete() {
       setError("Erreur lors du chargement de la réservation");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClient = async (clientId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/clients/${clientId}`);
+      const data = await response.json();
+      if (data.success) {
+        setClients(data.data);
+        console.log (data.data)
+      }
+    } catch (error) {
+      console.error("Error fetching client:", error);
     }
   };
 
@@ -240,22 +278,22 @@ export default function EditReservationComplete() {
     let total = 0;
 
     (selectedServices.flights || []).forEach(id => {
-      const vol = (vols || []).find(v => v.id === id);
+      const vol = (vols || []).find(v => v.idVol === id);
       if (vol) total += (vol.price || 0) * (formData.participants || 1);
     });
 
     (selectedServices.accommodations || []).forEach(id => {
       const hebergement = (hebergements || []).find(h => h.idHebergement === id);
-      if (hebergement) total += (hebergement.pricePerNight || 0) * 7; // Assume 7 nights
+      if (hebergement) total += (hebergement.priceRange || 0) * 7; // Assume 7 nights
     });
 
     (selectedServices.vehicles || []).forEach(id => {
-      const voiture = (voitures || []).find(v => v.id === id);
+      const voiture = (voitures || []).find(v => v.idVoiture === id);
       if (voiture) total += (voiture.pricePerDay || 0) * 7; // Assume 7 days
     });
 
     (selectedServices.activities || []).forEach(id => {
-      const activite = (activites || []).find(a => a.id === id);
+      const activite = (activites || []).find(a => a.idActivite === id);
       if (activite) total += (activite.priceAdult || 0) * (formData.participants || 1);
     });
 
@@ -409,7 +447,7 @@ export default function EditReservationComplete() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/reservations/${id}`)}
+            onClick={() => navigate(-1)}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour
@@ -723,7 +761,7 @@ export default function EditReservationComplete() {
                 <div className="flex justify-between text-sm pt-2 border-t">
                   <span>Créé le:</span>
                   <span className="font-medium">
-                    {new Date(reservation.dateCreated).toLocaleDateString("fr-FR")}
+                    {new Date(formData.dateCreated).toLocaleDateString("fr-FR")}
                   </span>
                 </div>
                 {reservation.lastModified && (

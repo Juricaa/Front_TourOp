@@ -130,6 +130,10 @@ export interface Vol {
   images?: string[];
   createdAt?: Date;
   updatedAt?: Date;
+  departure: string;
+  arrival: string;
+  date_debut: Date;
+  date_fin: Date;
 }
 
 
@@ -181,6 +185,10 @@ export const normalizeVol = (vol: any): Vol => ({
   images: vol.images ?? undefined,
   createdAt: new Date(vol.createdAt),
   updatedAt: new Date(vol.updatedAt),
+  departure: vol.departure,
+  arrival: vol.arrival,
+  date_debut: new Date(vol.date_debut),
+  date_fin: new Date(vol.date_fin),
 });
 
 
@@ -328,7 +336,7 @@ export interface Invoice {
   clientEmail: string;
   clientAddress: string;
   clientPhone: string;
-
+  paymentStatus : string;
   // Invoice details
   issueDate: Date;
   dueDate: Date;

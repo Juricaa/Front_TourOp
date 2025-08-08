@@ -40,7 +40,14 @@ interface FullReservationEditorProps {
     vehicles: string[];
     activities: string[];
   };
+  serviceDates: {
+    flights: { [serviceId: string]: string };
+    accommodations: { [serviceId: string]: { checkIn: string; checkOut: string } };
+    vehicles: { [serviceId: string]: { startDate: string; endDate: string } };
+    activities: { [serviceId: string]: string };
+  };
   onServiceToggle: (serviceType: 'flights' | 'accommodations' | 'vehicles' | 'activities', serviceId: string) => void;
+  onServiceDateChange: (serviceType: string, serviceId: string, dateData: any) => void;
   onCalculateTotal: () => number;
 }
 
@@ -54,7 +61,9 @@ export default function FullReservationEditor({
   voitures,
   activites,
   selectedServices,
+  serviceDates,
   onServiceToggle,
+  onServiceDateChange,
   onCalculateTotal,
 }: FullReservationEditorProps) {
   const [searchTerms, setSearchTerms] = useState({
@@ -94,6 +103,7 @@ export default function FullReservationEditor({
   );
 
   useEffect(() => {
+    
     // Auto-calculate total when services change
     try {
       const newTotal = onCalculateTotal();
@@ -137,34 +147,7 @@ export default function FullReservationEditor({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="participants">Nombre de participants</Label>
-                <Input
-                  id="participants"
-                  type="number"
-                  min="1"
-                  value={formData.participants}
-                  onChange={(e) =>
-                    setFormData((prev: any) => ({
-                      ...prev,
-                      participants: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateTravel">Date de départ</Label>
-                <Input
-                  id="dateTravel"
-                  type="date"
-                  value={formData.dateTravel}
-                  onChange={(e) =>
-                    setFormData((prev: any) => ({ ...prev, dateTravel: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
+
           </div>
         </CardContent>
       </Card>
@@ -187,21 +170,57 @@ export default function FullReservationEditor({
             <div className="max-h-64 overflow-y-auto space-y-2">
               {filteredVols.map((vol) => (
                 <div
-                  key={vol.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg"
+                  key={vol.idVol}
+                  className="border rounded-lg p-3 space-y-3"
                 >
-                  <Checkbox
-                    checked={(selectedServices?.flights || []).includes(vol.id)}
-                    onCheckedChange={() => onServiceToggle('flights', vol.id)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {vol.airline || 'N/A'} - {vol.departure || 'N/A'} → {vol.arrival || 'N/A'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {vol.flightNumber || 'N/A'} • {formatCurrency((vol.price || 0) * (formData.participants || 1))} {reservation.currency}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={(selectedServices?.flights || []).includes(vol.idVol)}
+                      onCheckedChange={() => onServiceToggle('flights', vol.idVol)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {vol.airline || 'N/A'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {vol.flightNumber || 'N/A'} • {formatCurrency((vol.price || 0) * (formData.participants || 1))} {reservation.currency}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Date du vol si sélectionné */}
+                  {(selectedServices?.flights || []).includes(vol.idVol) && (
+                    <div className="ml-6 pl-3 border-l border-blue-200 bg-blue-50 p-3 rounded">
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-sm font-medium text-blue-900">Date du vol</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.flights?.[vol.date_debut] || formData.dateTravel || ''}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('flights', vol.idVol, e.target.value)
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-blue-900">Date de retour</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.flights?.[vol.date_fin] || formData.dateTravel || ''}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('flights', vol.idVol, e.target.value)
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -228,23 +247,79 @@ export default function FullReservationEditor({
               {filteredHebergements.map((hebergement) => (
                 <div
                   key={hebergement.idHebergement}
-                  className="flex items-center space-x-3 p-3 border rounded-lg"
+                  className="border rounded-lg p-3 space-y-3"
                 >
-                  <Checkbox
-                    checked={(selectedServices?.accommodations || []).includes(hebergement.idHebergement)}
-                    onCheckedChange={() => onServiceToggle('accommodations', hebergement.idHebergement)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{hebergement.name || 'N/A'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {hebergement.location || 'N/A'} • {hebergement.type || 'N/A'} • {formatCurrency((hebergement.pricePerNight || 0) * 7)} {reservation.currency}/semaine
-                    </div>
-                    <div className="flex gap-1 mt-1">
-                      {Array.from({ length: Math.max(0, Math.min(5, hebergement.rating || 0)) }).map((_, i) => (
-                        <span key={i} className="text-yellow-400">★</span>
-                      ))}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={(selectedServices?.accommodations || []).includes(hebergement.idHebergement)}
+                      onCheckedChange={() => onServiceToggle('accommodations', hebergement.idHebergement)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{hebergement.name || 'N/A'}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {hebergement.location || 'N/A'} • {hebergement.type || 'N/A'} • {formatCurrency((hebergement.pricePerNight || 0) * 7)} {reservation.currency}/semaine
+                      </div>
+                      <div className="flex gap-1 mt-1">
+                        {Array.from({ length: Math.max(0, Math.min(5, hebergement.rating || 0)) }).map((_, i) => (
+                          <span key={i} className="text-yellow-400">★</span>
+                        ))}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Dates d'hébergement si sélectionné */}
+                  {(selectedServices?.accommodations || []).includes(hebergement.idHebergement) && (
+                    <div className="ml-6 pl-3 border-l border-green-200 bg-green-50 p-3 rounded">
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-green-900">Dates d'hébergement</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Check-in</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.accommodations?.[hebergement.idHebergement]?.checkIn || formData.dateTravel || ''}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('accommodations', hebergement.idHebergement, {
+                                  ...serviceDates?.accommodations?.[hebergement.idHebergement],
+                                  checkIn: e.target.value
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Check-out</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.accommodations?.[hebergement.idHebergement]?.checkOut || formData.dateReturn || ''}
+                              min={serviceDates?.accommodations?.[hebergement.idHebergement]?.checkIn || new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('accommodations', hebergement.idHebergement, {
+                                  ...serviceDates?.accommodations?.[hebergement.idHebergement],
+                                  checkOut: e.target.value
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                        {/* Calcul du nombre de nuits */}
+                        {serviceDates?.accommodations?.[hebergement.idHebergement]?.checkIn &&
+                          serviceDates?.accommodations?.[hebergement.idHebergement]?.checkOut && (
+                            <div className="text-xs text-green-700">
+                              Nombre de nuits: {(() => {
+                                const checkIn = new Date(serviceDates.accommodations[hebergement.idHebergement].checkIn);
+                                const checkOut = new Date(serviceDates.accommodations[hebergement.idHebergement].checkOut);
+                                const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                return diffDays;
+                              })()}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -270,24 +345,80 @@ export default function FullReservationEditor({
             <div className="max-h-64 overflow-y-auto space-y-2">
               {filteredVoitures.map((voiture) => (
                 <div
-                  key={voiture.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg"
+                  key={voiture.idVoiture}
+                  className="border rounded-lg p-3 space-y-3"
                 >
-                  <Checkbox
-                    checked={(selectedServices?.vehicles || []).includes(voiture.id)}
-                    onCheckedChange={() => onServiceToggle('vehicles', voiture.id)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {voiture.brand || 'N/A'} {voiture.model || ''}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {voiture.location || 'N/A'} • {voiture.type || 'N/A'} • {formatCurrency((voiture.pricePerDay || 0) * 7)} {reservation.currency}/semaine
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Capacité: {voiture.capacity || 'N/A'} • Carburant: {voiture.fuel || 'N/A'}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={(selectedServices?.vehicles || []).includes(voiture.idVoiture)}
+                      onCheckedChange={() => onServiceToggle('vehicles', voiture.idVoiture)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {voiture.brand || 'N/A'} {voiture.model || ''}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {voiture.location || 'N/A'} • {voiture.brand || 'N/A'} • {formatCurrency((voiture.pricePerDay || 0) * 7)} {reservation.currency}/semaine
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Capacité: {voiture.capacity || 'N/A'} •
+                      </div>
                     </div>
                   </div>
+
+                  {/* Dates de location si sélectionné */}
+                  {(selectedServices?.vehicles || []).includes(voiture.idVoiture) && (
+                    <div className="ml-6 pl-3 border-l border-purple-200 bg-purple-50 p-3 rounded">
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-purple-900">Dates de location</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Début</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.vehicles?.[voiture.idVoiture]?.startDate || formData.dateTravel || ''}
+                              min={new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('vehicles', voiture.idVoiture, {
+                                  ...serviceDates?.vehicles?.[voiture.idVoiture],
+                                  startDate: e.target.value
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Fin</Label>
+                            <Input
+                              type="date"
+                              value={serviceDates?.vehicles?.[voiture.idVoiture]?.endDate || formData.dateReturn || ''}
+                              min={serviceDates?.vehicles?.[voiture.idVoiture]?.startDate || new Date().toISOString().split('T')[0]}
+                              onChange={(e) =>
+                                onServiceDateChange('vehicles', voiture.idVoiture, {
+                                  ...serviceDates?.vehicles?.[voiture.idVoiture],
+                                  endDate: e.target.value
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                        {/* Calcul du nombre de jours */}
+                        {serviceDates?.vehicles?.[voiture.idVoiture]?.startDate &&
+                          serviceDates?.vehicles?.[voiture.idVoiture]?.endDate && (
+                            <div className="text-xs text-purple-700">
+                              Nombre de jours: {(() => {
+                                const startDate = new Date(serviceDates.vehicles[voiture.idVoiture].startDate);
+                                const endDate = new Date(serviceDates.vehicles[voiture.idVoiture].endDate);
+                                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                return diffDays;
+                              })()}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -313,22 +444,45 @@ export default function FullReservationEditor({
             <div className="max-h-64 overflow-y-auto space-y-2">
               {filteredActivites.map((activite) => (
                 <div
-                  key={activite.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg"
+                  key={activite.idActivite}
+                  className="border rounded-lg p-3 space-y-3"
                 >
-                  <Checkbox
-                    checked={(selectedServices?.activities || []).includes(activite.id)}
-                    onCheckedChange={() => onServiceToggle('activities', activite.id)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{activite.name || 'N/A'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {activite.location || 'N/A'} • {activite.category || 'N/A'} • {formatCurrency((activite.priceAdult || 0) * (formData.participants || 1))} {reservation.currency}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Durée: {activite.duration || 'N/A'} • Difficulté: {activite.difficulty || 'N/A'}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={(selectedServices?.activities || []).includes(activite.idActivite)}
+                      onCheckedChange={() => onServiceToggle('activities', activite.idActivite)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{activite.name || 'N/A'}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {activite.location || 'N/A'} • {activite.category || 'N/A'} • {formatCurrency((activite.priceAdult || 0) * (formData.participants || 1))} {reservation.currency}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Durée: {activite.duration || 'N/A'} • Difficulté: {activite.difficulty || 'N/A'}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Date de l'activité si sélectionnée */}
+                  {(selectedServices?.activities || []).includes(activite.idActivite) && (
+                    <div className="ml-6 pl-3 border-l border-orange-200 bg-orange-50 p-3 rounded">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-orange-900">Date de l'activité</Label>
+                        <Input
+                          type="date"
+                          value={serviceDates?.activities?.[activite.idActivite] || formData.dateTravel || ''}
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={(e) =>
+                            onServiceDateChange('activities', activite.idActivite, e.target.value)
+                          }
+                          className="w-full"
+                        />
+                        <div className="text-xs text-orange-700">
+                          Durée prévue: {activite.duration || 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -352,7 +506,7 @@ export default function FullReservationEditor({
                   <span>Vols:</span>
                   <span>{formatCurrency(
                     (selectedServices.flights || []).reduce((total, id) => {
-                      const vol = (vols || []).find(v => v.id === id);
+                      const vol = (vols || []).find(v => v.idVol === id);
                       return total + (vol ? (vol.price || 0) * (formData.participants || 1) : 0);
                     }, 0)
                   )} {reservation.currency}</span>
@@ -362,7 +516,7 @@ export default function FullReservationEditor({
                   <span>{formatCurrency(
                     (selectedServices.accommodations || []).reduce((total, id) => {
                       const hebergement = (hebergements || []).find(h => h.idHebergement === id);
-                      return total + (hebergement ? (hebergement.pricePerNight || 0) * 7 : 0);
+                      return total + (hebergement ? (hebergement.priceRange || 0) * 7 : 0);
                     }, 0)
                   )} {reservation.currency}</span>
                 </div>
@@ -372,7 +526,7 @@ export default function FullReservationEditor({
                   <span>Véhicules:</span>
                   <span>{formatCurrency(
                     (selectedServices.vehicles || []).reduce((total, id) => {
-                      const voiture = (voitures || []).find(v => v.id === id);
+                      const voiture = (voitures || []).find(v => v.idVoiture === id);
                       return total + (voiture ? (voiture.pricePerDay || 0) * 7 : 0);
                     }, 0)
                   )} {reservation.currency}</span>
@@ -381,7 +535,7 @@ export default function FullReservationEditor({
                   <span>Activités:</span>
                   <span>{formatCurrency(
                     (selectedServices.activities || []).reduce((total, id) => {
-                      const activite = (activites || []).find(a => a.id === id);
+                      const activite = (activites || []).find(a => a.idActivite === id);
                       return total + (activite ? (activite.priceAdult || 0) * (formData.participants || 1) : 0);
                     }, 0)
                   )} {reservation.currency}</span>

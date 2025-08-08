@@ -19,7 +19,7 @@ export interface CreateInvoiceData {
 }
 
 export interface UpdateInvoiceData extends Partial<CreateInvoiceData> {
-  status?: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status?: "payé" | "en_attente" | "partial" | "overdue" | "cancelled";
   paymentMethod?: "cash" | "card" | "transfer" | "mobile";
   paymentDate?: Date;
   paidAmount?: number;
@@ -60,21 +60,15 @@ class FactureService {
           }
         }
 
-  async getFacture(id: string): Promise<Invoice> {
+  async getFacture(id: string): Promise<ApiResponse<Invoice>> {
     try {
-      const response = await fetchApi(`${API_BASE_URL}/api/factures/${id}/`);
-      if (!response.success || !response.data) {
-        throw new Error(
-          response.error || "Erreur lors de la récupération de la facture",
-        );
-      }
-      return response.data;
+      const response = await fetch(`${API_BASE_URL}/factures/${id}/`);
+      return this.handleResponse<Invoice>(response);
     } catch (error) {
-      console.error(
-        `Erreur lors de la récupération de la facture ${id}:`,
-        error,
-      );
-      throw error;
+      return {
+        success: false,
+        error: "Network error",
+      };
     }
   }
 
