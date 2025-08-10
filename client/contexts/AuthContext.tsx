@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/services/apiConfig";
 import React, {
   createContext,
   useContext,
@@ -73,43 +74,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
+    const savedUser = localStorage.getItem('user');
+    const savedAccessToken = localStorage.getItem('accessToken');
+  
+    if (savedUser && savedAccessToken) {
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
         setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Error parsing saved user data:", error);
-        localStorage.removeItem("user");
+      } catch {
+        localStorage.clear();
       }
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const foundUser = mockUsers.find(
-        (u) => u.email === email && u.password === password,
-      );
-
-      if (foundUser) {
-        const { password: _, ...userData } = foundUser;
-        setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem("user", JSON.stringify(userData));
-        return true;
+      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (!response.ok) {
+        return false;
       }
-
-      return false;
+  
+      const data = await response.json();
+  
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('refreshToken', data.refresh);
+      localStorage.setItem('user', JSON.stringify(data.user));
+  
+      setUser(data.user);
+      setIsAuthenticated(true);
+  
+      return true;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       return false;
     }
   };
+  
 
   const logout = () => {
     setUser(null);
