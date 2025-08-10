@@ -60,6 +60,26 @@ const App = () => (
                 }
               />
               <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/secretary/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <SecretaryDashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/clients"
                 element={
                   <ProtectedRoute requiredPermission="write">

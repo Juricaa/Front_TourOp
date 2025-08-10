@@ -15,13 +15,25 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const location = useLocation();
 
-  // If already authenticated, redirect to intended page or dashboard
-  if (isAuthenticated) {
-    const from = location.state?.from?.pathname || "/";
-    return <Navigate to={from} replace />;
+  // If already authenticated, redirect to role-specific dashboard
+  if (isAuthenticated && user) {
+    const from = location.state?.from?.pathname;
+    if (from) {
+      return <Navigate to={from} replace />;
+    }
+    
+    // Redirect to role-specific dashboard
+    switch (user.role) {
+      case "admin":
+        return <Navigate to="/admin/dashboard" replace />;
+      case "secretary":
+        return <Navigate to="/secretary/dashboard" replace />;
+      default:
+        return <Navigate to="/" replace />;
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +145,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {/* Demo Credentials */}
+        {/* Demo Credentials
         <Card className="border-dashed border-2 border-madagascar-200 bg-madagascar-50">
           <CardContent className="pt-6">
             <h3 className="font-semibold text-madagascar-900 mb-3">
@@ -158,7 +170,7 @@ export default function Login() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

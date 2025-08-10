@@ -329,12 +329,12 @@ export default function SecretaryDashboard() {
                   </p>
                   <Badge
                     variant={
-                      reservation.status === "confirmed"
+                      reservation.status === "confirmé"
                         ? "default"
                         : "secondary"
                     }
                   >
-                    {reservation.status === "confirmed"
+                    {reservation.status === "confirmé"
                       ? "Confirmée"
                       : "En attente"}
                   </Badge>
