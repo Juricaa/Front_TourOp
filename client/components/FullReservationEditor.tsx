@@ -118,7 +118,7 @@ export default function FullReservationEditor({
   return (
     <div className="space-y-6">
       {/* Client Selection */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
@@ -150,7 +150,7 @@ export default function FullReservationEditor({
 
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Flights Selection */}
       <Card>
