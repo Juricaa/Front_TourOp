@@ -131,167 +131,6 @@ export default function SummaryStep() {
     }
   };
 
-  const generateInvoice = () => {
-    const currentDate = new Date().toLocaleDateString("fr-FR");
-    const invoiceContent = `
-FACTURE - TOUROP MADAGASCAR
-============================
-
-Réservation: NOUVELLE
-Date de création: ${currentDate}
-Statut: En cours
-
-CLIENT:
-${state.client?.name}
-${state.client?.email}
-${state.client?.phone}
-${state.client?.address}
-Nationalité: ${state.client?.nationality}
-
-PÉRIODE DE VOYAGE:
-Du ${state.travelDates.start.toLocaleDateString("fr-FR")}
-Au ${state.travelDates.end.toLocaleDateString("fr-FR")}
-
-SERVICES RÉSERVÉS:
-
-${
-  state.accommodations.length > 0
-    ? `HÉBERGEMENTS:
-${state.accommodations.map((acc, index) => `${index + 1}. ${formatCurrency(acc.price)} Ar - ${acc.rooms} chambre(s), ${acc.guests} personne(s)`).join("\n")}
-
-`
-    : ""
-}${
-      state.vehicles.length > 0
-        ? `VÉHICULES:
-${state.vehicles.map((vehicle, index) => `${index + 1}. ${formatCurrency(vehicle.price)} Ar - ${vehicle.pickupLocation} → ${vehicle.dropoffLocation}`).join("\n")}
-
-`
-        : ""
-    }${
-      state.activities.length > 0
-        ? `ACTIVITÉS:
-${state.activities.map((activity, index) => `${index + 1}. ${formatCurrency(activity.price)} Ar - ${activity.participants} participant(s)`).join("\n")}
-
-`
-        : ""
-    }${
-      state.flights.length > 0
-        ? `VOLS:
-${state.flights.map((flight, index) => `${index + 1}. ${formatCurrency(flight.price)} Ar - ${flight.passengers} passager(s)`).join("\n")}
-
-`
-        : ""
-    }
-============================
-TOTAL: ${formatCurrency(state.totalPrice)} Ar
-============================
-
-Notes: ${state.notes || "Aucune note"}
-
-Merci de votre confiance !
-TourOp Madagascar
-    `;
-
-    // Sauvegarder l'aperçu pour la navbar
-    setInvoicePreview(
-      invoiceContent,
-      state.client?.name || "Client",
-      state.totalPrice,
-      state.currency,
-    );
-
-    const blob = new Blob([invoiceContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `facture-${state.client?.name?.replace(/\s+/g, "-")}-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const generateTravelPlan = () => {
-    try {
-      // Générer le plan de voyage structuré
-      const travelPlan = TravelPlanGenerator.generateFromBooking(state);
-
-      // Sauvegarder l'aperçu pour la navbar
-      setTravelPlanPreview(travelPlan);
-      setBookingData(state);
-
-      // Créer un export détaillé du plan
-      const planText = `
-PLAN DE VOYAGE DÉTAILLÉ - TOUROP MADAGASCAR
-=============================================
-
-INFORMATIONS GÉNÉRALES:
-Client: ${travelPlan.clientName}
-Destination: ${travelPlan.destination}
-Période: ${travelPlan.startDate.toLocaleDateString("fr-FR")} - ${travelPlan.endDate.toLocaleDateString("fr-FR")}
-Durée: ${travelPlan.duration} jour(s)
-Participants: ${travelPlan.participants} personne(s)
-Prix total: ${formatCurrency(travelPlan.totalPrice)} ${travelPlan.currency}
-
-PROGRAMME JOUR PAR JOUR:
-${travelPlan.days
-  .map(
-    (day) => `
-📅 JOUR ${day.day} - ${day.date.toLocaleDateString("fr-FR")}
-${day.title}
-${day.description}
-
-Activités prévues:
-${day.activities.map((activity) => `• ${activity.time}: ${activity.activity}\n  ${activity.description} (${activity.duration})`).join("\n")}
-
-${day.accommodation ? `🏨 Hébergement: ${day.accommodation.name} (${day.accommodation.type})` : ""}
-${day.transport ? `🚗 Transport: ${day.transport.description}` : ""}
-${day.meals.breakfast || day.meals.lunch || day.meals.dinner ? `🍽️ Repas inclus: ${[day.meals.breakfast && "Petit-déjeuner", day.meals.lunch && "Déjeuner", day.meals.dinner && "Dîner"].filter(Boolean).join(", ")}` : ""}
-${day.notes ? `�� Notes: ${day.notes}` : ""}
-`,
-  )
-  .join("\n")}
-
-SERVICES INCLUS:
-${travelPlan.includes.map((item) => `✓ ${item}`).join("\n")}
-
-SERVICES NON INCLUS:
-${travelPlan.excludes.map((item) => `✗ ${item}`).join("\n")}
-
-📝 NOTES SPÉCIALES:
-${travelPlan.notes || "Aucune note particulière"}
-
-CONSEILS PRATIQUES:
-• Apportez des vêtements adaptés au climat tropical
-• N'oubliez pas votre crème solaire et anti-moustique
-• Vérifiez la validité de votre passeport (6 mois minimum)
-• Consultez votre médecin pour les vaccinations recommandées
-• Prévoyez de l'argent liquide (Ariary malgache)
-
-CONTACTS D'URGENCE:
-TourOp Madagascar: +261 XX XX XXX XX
-Email: contact@tourop-madagascar.mg
-Guide local: À confirmer
-
-Bon voyage avec TourOp Madagascar !
-=============================================
-      `;
-
-      const blob = new Blob([planText], { type: "text/plain; charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `plan-voyage-detaille-${state.client?.name?.replace(/\s+/g, "-")}-${Date.now()}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Erreur lors de la génération du plan:", error);
-      alert("Erreur lors de la génération du plan de voyage");
-    }
-  };
 
   const handleNewBooking = () => {
     resetBooking();
@@ -313,26 +152,7 @@ Bon voyage avec TourOp Madagascar !
           </p>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <h3 className="font-medium text-foreground">
-                Numéro de réservation:{" "}
-                <span className="font-bold">RES-{Date.now()}</span>
-              </h3>
-              <div className="flex items-center justify-center gap-4">
-                <Button onClick={generateInvoice} variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Télécharger Facture
-                </Button>
-                <Button onClick={generateTravelPlan} variant="outline">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Plan de Voyage
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      
 
         <div className="flex items-center justify-center gap-4">
           <Button onClick={() => navigate("/reservations")} variant="outline">
@@ -591,18 +411,7 @@ Bon voyage avec TourOp Madagascar !
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button onClick={generateInvoice} variant="outline" className="flex-1">
-          <Download className="w-4 h-4 mr-2" />
-          Aperçu Facture
-        </Button>
-        <Button
-          onClick={generateTravelPlan}
-          variant="outline"
-          className="flex-1"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Plan de Voyage
-        </Button>
+        
         <Button
           onClick={handleConfirmBooking}
           disabled={loading}

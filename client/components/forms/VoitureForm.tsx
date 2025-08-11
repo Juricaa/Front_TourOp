@@ -165,6 +165,7 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
               }
               placeholder="Toyota"
               required
+              />
           </div>
           <div className="space-y-2">
             <Label htmlFor="model">Modèle</Label>
