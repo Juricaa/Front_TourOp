@@ -51,7 +51,7 @@ export default function SecretaryDashboard() {
             {
               id: "RES001",
               clientId: "CLI001",
-              status: "confirmed" as const,
+              status: "confirmé" as const,
               totalPrice: 2500,
               currency: "EUR" as const,
               dateCreated: new Date("2024-12-15"),
@@ -60,7 +60,7 @@ export default function SecretaryDashboard() {
             {
               id: "RES002",
               clientId: "CLI002",
-              status: "pending" as const,
+              status: "en_attente" as const,
               totalPrice: 1800,
               currency: "EUR" as const,
               dateCreated: new Date("2024-12-14"),

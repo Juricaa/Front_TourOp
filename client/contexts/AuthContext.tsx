@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/services/apiConfig";
+import { toast } from "@/components/ui/use-toast";
 import React, {
   createContext,
   useContext,
@@ -76,10 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const savedAccessToken = localStorage.getItem('accessToken');
-
-   
     const expiry = sessionStorage.getItem('sessionExpiry');
-  
 
     if (expiry && Date.now() > Number(expiry)) {
       logout();
@@ -96,6 +94,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   }, []);
+
+  // Session expiry timer
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const checkSessionExpiry = () => {
+      const expiry = sessionStorage.getItem('sessionExpiry');
+      if (expiry && Date.now() > Number(expiry)) {
+        // Session expired - trigger logout with toast
+        
+        
+        toast({
+          title: "Session Expirée",
+          description: "Votre session a expiré. Veuillez vous reconnecter.",
+          variant: "destructive",
+        });
+        
+        // Perform logout without page reload
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem('sessionExpiry');
+      }
+    };
+
+    // Check immediately and then every 30 seconds
+    checkSessionExpiry();
+    const interval = setInterval(checkSessionExpiry, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -135,6 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem('sessionExpiry');
   };
 
   const hasPermission = (permission: "read" | "write" | "delete"): boolean => {
