@@ -5,25 +5,43 @@ import { Button } from "@/components/ui/button";
 import {
   Users,
   CalendarDays,
-  TrendingUp,
   MapPin,
   Plus,
-  ArrowUpRight,
-  ArrowDownRight,
-  Settings,
   FileText,
   Car,
   Building,
   Plane,
   Activity,
   Globe,
-  Receipt,
   Route,
   Shield,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { DashboardStats, Reservation } from "@shared/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { factureService } from "@/services/factureService";
+
+interface Reservation {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  clientDestinations: string;
+  status: string;
+  totalPrice: number;
+  currency: string;
+  dateCreated: Date;
+  dateReturn: Date;
+  dateTravel: Date;
+}
+
+interface DashboardStats {
+  totalClients: number;
+  totalReservations: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  popularDestinations: { name: string; count: number }[];
+  recentReservations: Reservation[];
+}
 
 export default function SecretaryDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -33,44 +51,49 @@ export default function SecretaryDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const response = await factureService.getFactures(); 
+        const result = response;
 
-        const mockStats: DashboardStats = {
-          totalClients: 127,
-          totalReservations: 45,
-          totalRevenue: 85420,
-          monthlyRevenue: 12350,
-          popularDestinations: [
-            { name: "Andasibe-Mantadia", count: 15 },
-            { name: "Nosy Be", count: 12 },
-            { name: "Tsingy de Bemaraha", count: 8 },
-            { name: "Morondava", count: 6 },
-          ],
-          recentReservations: [
-            {
-              id: "RES001",
-              clientId: "CLI001",
-              status: "confirmé" as const,
-              totalPrice: 2500,
-              currency: "EUR" as const,
-              dateCreated: new Date("2024-12-15"),
-              dateTravel: new Date("2025-01-15"),
-            },
-            {
-              id: "RES002",
-              clientId: "CLI002",
-              status: "en_attente" as const,
-              totalPrice: 1800,
-              currency: "EUR" as const,
-              dateCreated: new Date("2024-12-14"),
-              dateTravel: new Date("2025-02-10"),
-            },
-          ],
-        };
-        setStats(mockStats);
+        if (result.success) {
+          // Récupérer les réservations récentes
+          const recentReservations: Reservation[] = result.data.map((item: any) => ({
+            id: item.idFacture,
+            clientId: item.clientId.idClient,
+            clientName: item.clientId.name,
+            clientEmail: item.clientId.email,
+            clientDestinations: item.destination || [],
+            status: item.status,
+            totalPrice: parseFloat(item.totalPrice),
+            currency: "MGA", // à adapter si besoin
+            dateCreated: new Date(item.dateCreated),
+            dateReturn : new Date(item.dateReturn),
+            dateTravel: new Date(item.dateTravel),
+          }));
+
+          // Calculer les destinations populaires
+          const destinationCount: Record<string, number> = {};
+          recentReservations.forEach((r) => {
+            r.clientDestinations.split(',').forEach((d) => {
+              destinationCount[d] = (destinationCount[d] || 0) + 1;
+            });
+          });
+
+          const popularDestinations = Object.entries(destinationCount).map(
+            ([name, count]) => ({ name, count })
+          );
+
+          // Remplir les stats
+          setStats({
+            totalClients: new Set(recentReservations.map((r) => r.clientId)).size,
+            totalReservations: recentReservations.length,
+            totalRevenue: recentReservations.reduce((sum, r) => sum + r.totalPrice, 0),
+            monthlyRevenue: 0, // calcul spécifique si nécessaire
+            popularDestinations,
+            recentReservations,
+          });
+        }
       } catch (error) {
-        console.error("Erreur lors du chargement des statistiques:", error);
+        console.error("Erreur API:", error);
       } finally {
         setLoading(false);
       }
@@ -81,30 +104,14 @@ export default function SecretaryDashboard() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-muted rounded w-24"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-muted rounded w-16 mb-2"></div>
-                <div className="h-3 bg-muted rounded w-20"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      <div className="p-6">Chargement...</div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="p-6">
-        <div className="text-center text-muted-foreground">
-          Erreur lors du chargement des données
-        </div>
+      <div className="p-6 text-center text-muted-foreground">
+        Erreur lors du chargement des données
       </div>
     );
   }
@@ -132,72 +139,8 @@ export default function SecretaryDashboard() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClients}</div>
-            <p className="text-xs text-muted-foreground">
-              <ArrowUpRight className="inline h-3 w-3 text-green-500" />
-              +8.2% depuis le mois dernier
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Réservations</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalReservations}</div>
-            <p className="text-xs text-muted-foreground">
-              <ArrowUpRight className="inline h-3 w-3 text-green-500" />
-              +15.2% depuis le mois dernier
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Chiffre d'Affaires
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              €{stats.totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <ArrowUpRight className="inline h-3 w-3 text-green-500" />
-              +12.5% depuis le mois dernier
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ce Mois</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              €{stats.monthlyRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Revenus de décembre 2024
-            </p>
-          </CardContent>
-        </Card>
-      </div> */}
-
+      {/* Actions Rapides */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle>Actions Rapides</CardTitle>
@@ -218,7 +161,7 @@ export default function SecretaryDashboard() {
               </Button>
               <Button variant="outline" asChild className="justify-start h-12">
                 <Link to="/factures">
-                  <Receipt className="h-4 w-4 mr-2" />
+                  <FileText className="h-4 w-4 mr-2" />
                   Facturation
                 </Link>
               </Button>
@@ -232,7 +175,7 @@ export default function SecretaryDashboard() {
           </CardContent>
         </Card>
 
-        {/* Management Modules */}
+        {/* Modules de Gestion */}
         <Card>
           <CardHeader>
             <CardTitle>Modules de Gestion</CardTitle>
@@ -253,7 +196,7 @@ export default function SecretaryDashboard() {
               </Button>
               <Button variant="outline" asChild className="h-16 flex-col gap-2">
                 <Link to="/activites">
-                  <MapPin className="h-5 w-5" />
+                  <Activity className="h-5 w-5" />
                   Activités
                 </Link>
               </Button>
@@ -267,14 +210,14 @@ export default function SecretaryDashboard() {
           </CardContent>
         </Card>
 
-        {/* Popular Destinations */}
+        {/* Destinations Populaires */}
         <Card>
           <CardHeader>
             <CardTitle>Destinations Populaires</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats.popularDestinations.map((destination, index) => (
+              {stats.popularDestinations.map((destination) => (
                 <div
                   key={destination.name}
                   className="flex items-center justify-between"
@@ -299,7 +242,7 @@ export default function SecretaryDashboard() {
         </Card>
       </div>
 
-      {/* Recent Reservations */}
+      {/* Réservations Récentes */}
       <Card>
         <CardHeader>
           <CardTitle>Réservations Récentes</CardTitle>
@@ -309,23 +252,23 @@ export default function SecretaryDashboard() {
             {stats.recentReservations.map((reservation) => (
               <div
                 key={reservation.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border rounded-lg"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-madagascar-100 flex items-center justify-center">
-                    <CalendarDays className="w-5 h-5 text-madagascar-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{reservation.id}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Voyage: {reservation.dateTravel.toLocaleDateString()}
-                    </p>
-                  </div>
+                <div>
+                  <p className="font-medium">{reservation.clientName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {reservation.clientEmail}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Destinations : {reservation.clientDestinations}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Voyage : {reservation.dateTravel.toLocaleDateString()} - {reservation.dateReturn.toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="text-right">
+                <div className="text-right mt-2 md:mt-0">
                   <p className="font-medium">
-                    {reservation.currency === "EUR" ? "€" : "$"}
-                    {reservation.totalPrice.toLocaleString()}
+                    {reservation.currency} {reservation.totalPrice.toLocaleString()}
                   </p>
                   <Badge
                     variant={
@@ -334,9 +277,7 @@ export default function SecretaryDashboard() {
                         : "secondary"
                     }
                   >
-                    {reservation.status === "confirmé"
-                      ? "Confirmée"
-                      : "En attente"}
+                    {reservation.status}
                   </Badge>
                 </div>
               </div>
