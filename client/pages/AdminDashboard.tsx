@@ -21,6 +21,10 @@ import {
 import { Link } from "react-router-dom";
 import type { DashboardStats, Reservation } from "@shared/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { reservationService } from "@/services/reservationService";
+import { clientService } from "@/services/clientService";
+import { hebergementService } from "@/services/hebergementService";
+import { factureService } from "@/services/factureService";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -30,29 +34,92 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const [
+          reservationsResponse,
+          clientsResponse,
+          hebergementsResponse,
+          facturesResponse
+        ] = await Promise.all([
+          reservationService.getReservations(),
+          clientService.getClients(),
+          hebergementService.getHebergements(),
+          factureService.getFactures()
+        ]);
 
-        const mockStats: DashboardStats = {
-          totalClients: 127,
-          totalReservations: 45,
-          totalRevenue: 85420,
-          monthlyRevenue: 12350,
-          popularDestinations: [
-            { name: "Andasibe-Mantadia", count: 15 },
-            { name: "Nosy Be", count: 12 },
-            { name: "Tsingy de Bemaraha", count: 8 },
-            { name: "Morondava", count: 6 },
-            { name: "Sainte-Marie", count: 4 },
-          ],
-          recentReservations: [],
+        // Extract data from API responses
+        const reservations = reservationsResponse.data || [];
+        const clients = clientsResponse.data || [];
+        const hebergements = hebergementsResponse.data || [];
+        const factures = facturesResponse.data || [];
+
+        // Calcul des statistiques
+        const totalReservations = factures.length;
+        const totalClients = clients.length;
+        const totalHebergements = hebergements.length;
+        
+        // Calcul du chiffre d'affaires avec conversion en nombre
+        const totalRevenue = factures.reduce((sum, facture) => {
+          const amount = Number((facture as any).totalPrice || (facture as any).montant || (facture as any).montantTotal || 0);
+          return sum + amount;
+        }, 0);
+
+        // Revenu mensuel pour le graphique
+        const monthlyRevenue = calculateMonthlyRevenue(factures);
+        
+        // Destinations populaires (à adapter selon votre structure de données)
+        const popularDestinations = calculatePopularDestinations(reservations);
+
+        const realStats: DashboardStats = {
+          totalClients,
+          totalReservations,
+          totalRevenue,
+          monthlyRevenue: monthlyRevenue.reduce((sum, item) => sum + item.revenue, 0),
+          popularDestinations,
+          recentReservations: reservations
+            .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
+            .slice(0, 5),
         };
-        setStats(mockStats);
+        setStats(realStats);
       } catch (error) {
         console.error("Erreur lors du chargement des statistiques:", error);
       } finally {
         setLoading(false);
       }
+    };
+
+    const calculateMonthlyRevenue = (factures: any[]) => {
+      const monthlyData: { [key: string]: number } = {};
+      
+      factures.forEach(facture => {
+        if (facture.dateEmission) {
+          const month = new Date(facture.dateEmission).toLocaleDateString('fr-FR', { 
+            year: 'numeric', 
+            month: 'short' 
+          });
+          monthlyData[month] = (monthlyData[month] || 0) + Number((facture as any).montantTotal || 0);
+        }
+      });
+
+      return Object.entries(monthlyData)
+        .map(([month, revenue]) => ({ month, revenue }))
+        .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+    };
+
+    const calculatePopularDestinations = (reservations: any[]) => {
+      // Cette fonction devra être adaptée selon votre structure de données
+      // Exemple basique - à personnaliser selon vos besoins
+      const destinations: { [key: string]: number } = {};
+      
+      reservations.forEach(reservation => {
+        // Adapter selon votre structure de données
+        const destination = (reservation as any).destination || (reservation as any).lieu || "Non spécifié";
+        destinations[destination] = (destinations[destination] || 0) + 1;
+      });
+
+      return Object.entries(destinations)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
     };
 
     fetchStats();
@@ -141,15 +208,15 @@ export default function AdminDashboard() {
               <CardTitle className="text-sm font-medium text-emerald-700">
                 Chiffre d'Affaires Total
               </CardTitle>
-              <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+              {/* <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
                 <Euro className="w-4 h-4 text-white" />
-              </div>
+              </div> */}
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-emerald-900">
-                €{stats.totalRevenue.toLocaleString()}
+                {stats.totalRevenue.toLocaleString()} Ar 
               </div>
               <div className="flex items-center gap-1">
                 <TrendingUp className="w-4 h-4 text-emerald-600" />

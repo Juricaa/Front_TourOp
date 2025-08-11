@@ -310,6 +310,8 @@ export type ReservationList = SingleReservation[];
 
 // API Response types
 export interface ApiResponse<T> {
+  sort: any;
+  reduce: any;
   success: boolean;
   data?: T;
   error?: string;

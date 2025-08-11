@@ -49,7 +49,7 @@ const mockUsers: (User & { password: string })[] = [
 // Routes accessible by role
 const rolePermissions = {
   admin: {
-    routes: ["/", "/destinations", "/settings"], // Dashboard, destinations and settings for viewing
+    routes: ["/", "/destinations", "/settings", "/hebergements", "/clients", "/reservations", "/factures", "/plans-voyage", "/voitures", "/activites", "/vols"], // All routes for admin
     permissions: ["read", "write", "delete"] as const,
   },
   secretary: {
@@ -66,7 +66,7 @@ const rolePermissions = {
       "/plans-voyage",
       "/settings",
     ], // All routes
-    permissions: ["read", "write", "delete"] as const,
+    permissions: ["read", "write"] as const,
   },
 };
 

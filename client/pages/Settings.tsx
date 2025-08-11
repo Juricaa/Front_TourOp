@@ -22,7 +22,6 @@ import {
   Palette,
   Globe,
   Save,
-  Eye,
   Lock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,20 +29,17 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Settings() {
   const { user } = useAuth();
   const [settings, setSettings] = useState({
-    // Company Settings
     companyName: "Madagascar Tours & Travel",
     companyAddress: "Lot 123 Antananarivo 101, Madagascar",
     companyPhone: "+261 20 22 123 45",
     companyEmail: "contact@madagascar-tours.mg",
     companyWebsite: "www.madagascar-tours.mg",
 
-    // User Preferences
     theme: "light",
     language: "fr",
     currency: "EUR",
     dateFormat: "dd/mm/yyyy",
 
-    // Notifications
     emailNotifications: true,
     smsNotifications: false,
     invoiceReminders: true,
@@ -51,11 +47,8 @@ export default function Settings() {
   });
 
   const handleSave = () => {
-    // In a real app, this would save to backend
     console.log("Settings saved:", settings);
   };
-
-  const isAdmin = user?.role === "admin";
 
   return (
     <div className="p-6 space-y-6">
@@ -66,27 +59,11 @@ export default function Settings() {
             <SettingsIcon className="w-8 h-8 text-slate-600" />
             Paramètres
           </h1>
-          <p className="text-muted-foreground">
-            {isAdmin
-              ? "Consultation des paramètres système"
-              : "Configurez votre espace de travail"}
-          </p>
+          <p className="text-muted-foreground">Configurez votre espace de travail</p>
         </div>
-        <Badge
-          variant={isAdmin ? "secondary" : "default"}
-          className={isAdmin ? "bg-blue-100 text-blue-800" : ""}
-        >
-          {isAdmin ? (
-            <>
-              <Eye className="w-3 h-3 mr-1" />
-              Lecture seule
-            </>
-          ) : (
-            <>
-              <Shield className="w-3 h-3 mr-1" />
-              Gestion complète
-            </>
-          )}
+        <Badge variant="default">
+          <Shield className="w-3 h-3 mr-1" />
+          Gestion complète
         </Badge>
       </div>
 
@@ -108,7 +85,6 @@ export default function Settings() {
                 onChange={(e) =>
                   setSettings({ ...settings, companyName: e.target.value })
                 }
-                disabled={isAdmin}
               />
             </div>
 
@@ -120,7 +96,6 @@ export default function Settings() {
                 onChange={(e) =>
                   setSettings({ ...settings, companyAddress: e.target.value })
                 }
-                disabled={isAdmin}
                 rows={2}
               />
             </div>
@@ -134,7 +109,6 @@ export default function Settings() {
                   onChange={(e) =>
                     setSettings({ ...settings, companyPhone: e.target.value })
                   }
-                  disabled={isAdmin}
                 />
               </div>
 
@@ -147,7 +121,6 @@ export default function Settings() {
                   onChange={(e) =>
                     setSettings({ ...settings, companyEmail: e.target.value })
                   }
-                  disabled={isAdmin}
                 />
               </div>
             </div>
@@ -160,7 +133,6 @@ export default function Settings() {
                 onChange={(e) =>
                   setSettings({ ...settings, companyWebsite: e.target.value })
                 }
-                disabled={isAdmin}
               />
             </div>
           </CardContent>
@@ -182,7 +154,6 @@ export default function Settings() {
                 onValueChange={(value) =>
                   setSettings({ ...settings, theme: value })
                 }
-                disabled={isAdmin}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -202,7 +173,6 @@ export default function Settings() {
                 onValueChange={(value) =>
                   setSettings({ ...settings, language: value })
                 }
-                disabled={isAdmin}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -223,7 +193,6 @@ export default function Settings() {
                   onValueChange={(value) =>
                     setSettings({ ...settings, currency: value })
                   }
-                  disabled={isAdmin}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -243,7 +212,6 @@ export default function Settings() {
                   onValueChange={(value) =>
                     setSettings({ ...settings, dateFormat: value })
                   }
-                  disabled={isAdmin}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -269,7 +237,7 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+              <div>
                 <Label>Notifications par email</Label>
                 <p className="text-sm text-muted-foreground">
                   Recevoir les notifications importantes par email
@@ -280,12 +248,11 @@ export default function Settings() {
                 onCheckedChange={(checked) =>
                   setSettings({ ...settings, emailNotifications: checked })
                 }
-                disabled={isAdmin}
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+              <div>
                 <Label>Notifications SMS</Label>
                 <p className="text-sm text-muted-foreground">
                   Recevoir les alertes urgentes par SMS
@@ -296,12 +263,11 @@ export default function Settings() {
                 onCheckedChange={(checked) =>
                   setSettings({ ...settings, smsNotifications: checked })
                 }
-                disabled={isAdmin}
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+              <div>
                 <Label>Rappels de facturation</Label>
                 <p className="text-sm text-muted-foreground">
                   Rappels automatiques pour les factures en retard
@@ -312,12 +278,11 @@ export default function Settings() {
                 onCheckedChange={(checked) =>
                   setSettings({ ...settings, invoiceReminders: checked })
                 }
-                disabled={isAdmin}
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+              <div>
                 <Label>Alertes de réservation</Label>
                 <p className="text-sm text-muted-foreground">
                   Notifications pour les nouvelles réservations
@@ -328,7 +293,6 @@ export default function Settings() {
                 onCheckedChange={(checked) =>
                   setSettings({ ...settings, bookingAlerts: checked })
                 }
-                disabled={isAdmin}
               />
             </div>
           </CardContent>
@@ -345,63 +309,39 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    isAdmin ? "bg-blue-100" : "bg-green-100"
-                  }`}
-                >
-                  <User
-                    className={`w-5 h-5 ${isAdmin ? "text-blue-600" : "text-green-600"}`}
-                  />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-green-100">
+                  <User className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <p className="font-medium">{user?.name}</p>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
               </div>
-              <Badge variant={isAdmin ? "secondary" : "default"}>
-                {isAdmin ? "Administrateur" : "Secrétaire"}
+              <Badge variant="default">
+                {user?.role === "admin" ? "Administrateur" : "Secrétaire"}
               </Badge>
             </div>
 
-            {!isAdmin && (
-              <>
-                <Button variant="outline" className="w-full">
-                  <Lock className="w-4 h-4 mr-2" />
-                  Changer le mot de passe
-                </Button>
+            <Button variant="outline" className="w-full">
+              <Lock className="w-4 h-4 mr-2" />
+              Changer le mot de passe
+            </Button>
 
-                <Button variant="outline" className="w-full">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Sécurité avancée
-                </Button>
-              </>
-            )}
-
-            {isAdmin && (
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                <div className="flex items-center gap-2 text-blue-700">
-                  <Eye className="w-4 h-4" />
-                  <span className="text-sm font-medium">Mode consultation</span>
-                </div>
-                <p className="text-xs text-blue-600 mt-1">
-                  Modifications limitées pour ce type de compte
-                </p>
-              </div>
-            )}
+            <Button variant="outline" className="w-full">
+              <Shield className="w-4 h-4 mr-2" />
+              Sécurité avancée
+            </Button>
           </CardContent>
         </Card>
       </div>
 
       {/* Save Button */}
-      {!isAdmin && (
-        <div className="flex justify-end">
-          <Button onClick={handleSave} className="flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            Sauvegarder les paramètres
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} className="flex items-center gap-2">
+          <Save className="w-4 h-4" />
+          Sauvegarder les paramètres
+        </Button>
+      </div>
     </div>
   );
 }
