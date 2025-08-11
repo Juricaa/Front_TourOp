@@ -66,7 +66,7 @@ const rolePermissions = {
       "/plans-voyage",
       "/settings",
     ], // All routes
-    permissions: ["read", "write"] as const,
+    permissions: ["read", "write","delete"] as const,
   },
 };
 
