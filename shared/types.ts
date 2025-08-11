@@ -203,6 +203,7 @@ export interface Reservation {
   dateTravel: Date;
   dateReturn?: Date;
   notes?: string;
+  destination: string;
 
   // Associated services
   hebergements?: {
@@ -346,7 +347,7 @@ export interface Invoice {
   returnDate?: Date;
   dateTravel : Date;
   dateReturn : Date;
-
+  destination: string;
 
   // Financial
   currency: "Ar" | "EUR" | "USD";

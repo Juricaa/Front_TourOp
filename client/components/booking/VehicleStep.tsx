@@ -58,16 +58,7 @@ const vehicleTypes = [
   "Luxe",
 ];
 
-const locations = [
-  "Tous",
-  "Antananarivo",
-  "Andasibe",
-  "Nosy Be",
-  "Morondava",
-  "Diego Suarez",
-  "Fianarantsoa",
-  "Sainte-Marie",
-];
+const locations =[""];
 
 export default function VehicleStep() {
   const { state, removeVehicle } = useBooking();
@@ -78,8 +69,8 @@ export default function VehicleStep() {
   const [rentalForm, setRentalForm] = useState({
     startDate: "",
     endDate: "",
-    pickupLocation: "Aéroport Antananarivo",
-    dropoffLocation: "Aéroport Antananarivo",
+    pickupLocation: "",
+    dropoffLocation: "",
   });
 
   // Filter states
@@ -106,11 +97,11 @@ export default function VehicleStep() {
       setDateValidationWarnings([]);
       return;
     }
-    
+
     // Use client travel dates as fallback if no flights have specific dates
     const clientDepartureDate = state.client?.dateTravel?.toString();
     const clientReturnDate = state.client?.dateReturn?.toString();
-    
+
     if (!clientDepartureDate || !clientReturnDate) {
       setDateValidationErrors(["Les dates de voyage client ne sont pas définies."]);
       setDateValidationWarnings([]);
@@ -468,55 +459,28 @@ export default function VehicleStep() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="pickup">Lieu de prise en charge</Label>
-              <Select
+              <Input
+                id="pickup"
                 value={rentalForm.pickupLocation}
-                onValueChange={(value) =>
-                  setRentalForm({ ...rentalForm, pickupLocation: value })
+                onChange={(e) =>
+                  setRentalForm({ ...rentalForm, pickupLocation: e.target.value })
                 }
+              placeholder="Exemple: Aéroport Antananarivo"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Aéroport Antananarivo">
-                    Aéroport Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Centre-ville Antananarivo">
-                    Centre-ville Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Andasibe">Andasibe</SelectItem>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Morondava">Morondava</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Fianarantsoa">Fianarantsoa</SelectItem>
-                </SelectContent>
-              </Select>
+               
+              </Input>
             </div>
             <div className="space-y-2">
               <Label htmlFor="dropoff">Lieu de restitution</Label>
-              <Select
+              <Input
                 value={rentalForm.dropoffLocation}
-                onValueChange={(value) =>
-                  setRentalForm({ ...rentalForm, dropoffLocation: value })
+                onChange={(e) =>
+                  setRentalForm({ ...rentalForm, dropoffLocation: e.target.value })
                 }
+                placeholder="Exemple : Antsirabe"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Aéroport Antananarivo">
-                    Aéroport Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Centre-ville Antananarivo">
-                    Centre-ville Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Andasibe">Andasibe</SelectItem>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Morondava">Morondava</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Fianarantsoa">Fianarantsoa</SelectItem>
-                </SelectContent>
-              </Select>
+                
+              </Input>
             </div>
           </div>
           {rentalForm.startDate && rentalForm.endDate && (
@@ -641,6 +605,159 @@ export default function VehicleStep() {
           </div>
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Search className="w-5 h-5" />
+              Recherche et Filtres
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                {showAdvancedFilters ? "Masquer" : "Filtres avancés"}
+              </Button>
+              {(searchTerm ||
+                typeFilter !== "Tous" ||
+                locationFilter !== "Tous" ||
+                availabilityFilter !== "Tous" ||
+                selectedFeatures.length > 0) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="text-muted-foreground"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Effacer
+                  </Button>
+                )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Basic Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un véhicule..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Type de véhicule" />
+              </SelectTrigger>
+              <SelectContent>
+                {vehicleTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select> */}
+
+            {/* <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Localisation" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={availabilityFilter}
+              onValueChange={setAvailabilityFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Disponibilité" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tous">Tous</SelectItem>
+                <SelectItem value="available">Disponible</SelectItem>
+                <SelectItem value="unavailable">Non disponible</SelectItem>
+                <SelectItem value="maintenance">En maintenance</SelectItem>
+              </SelectContent>
+            </Select> */}
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="border-t pt-4">
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    Équipements
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {getAvailableFeatures().map((feature) => (
+                      <Button
+                        key={feature}
+                        variant={
+                          selectedFeatures.includes(feature)
+                            ? "default"
+                            : "outline"
+                        }
+                        size="sm"
+                        onClick={() => toggleFeatureFilter(feature)}
+                        className="text-xs"
+                      >
+                        {featureIcons[feature] && (
+                          <span className="w-3 h-3 mr-1">
+                            {React.createElement(featureIcons[feature], {
+                              className: "w-3 h-3",
+                            })}
+                          </span>
+                        )}
+                        {feature}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center p-3 bg-muted/30 rounded-lg">
+                    <div className="font-semibold text-lg">
+                      {filteredVehicles.length}
+                    </div>
+                    <div className="text-muted-foreground">Résultats</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/30 rounded-lg">
+                    <div className="font-semibold text-lg">
+                      {
+                        filteredVehicles.filter(
+                          (v) => v.availability === "available",
+                        ).length
+                      }
+                    </div>
+                    <div className="text-muted-foreground">Disponibles</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/30 rounded-lg">
+                    <div className="font-semibold text-lg">
+                      {filteredVehicles.filter((v) => v.driverIncluded).length}
+                    </div>
+                    <div className="text-muted-foreground">Avec chauffeur</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Véhicules disponibles */}
       <div>

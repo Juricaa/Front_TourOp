@@ -650,7 +650,7 @@ export default function AccommodationStep() {
         </CardHeader>
         <CardContent>
           {/* Basic Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -661,7 +661,7 @@ export default function AccommodationStep() {
               />
             </div>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Type d'hébergement" />
               </SelectTrigger>
@@ -685,7 +685,7 @@ export default function AccommodationStep() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
 
           {/* Advanced Filters */}

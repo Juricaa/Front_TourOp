@@ -28,24 +28,9 @@ interface HebergementFormProps {
   isEdit?: boolean;
 }
 
-const accommodationTypes = [
-  "Bungalow",
-  "Lodge",
-  "Hôtel",
-  "Resort",
-  "Guesthouse",
-];
+const accommodationTypes = [""];
 
-const locations = [
-  "Andasibe",
-  "Mantadia",
-  "Nosy Be",
-  "Sainte-Marie",
-  "Isalo",
-  "Tsingy",
-  "Morondava",
-  "Diego Suarez",
-];
+const locations = [ ""];
 
 const availableAmenities = [
   "wifi",
@@ -178,46 +163,29 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Select
+            <Input
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, type: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, type: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {accommodationTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="saisir le type Bungalow, ..."
+            />
+              
+           
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="location">Localisation</Label>
-            <Select
+            <Input
               value={formData.location}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, location: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Saisir la localisation"
+            />
+            
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Adresse</Label>

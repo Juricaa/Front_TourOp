@@ -19,7 +19,8 @@ export interface BookingClient {
   nbpersonnes: number;
   notes?: string;
   dateTravel: string; // Format ISO (YYYY-MM-DD)
-  dateReturn: String;
+  dateReturn: string;
+  destination: string;
 }
 
 export interface BookingFlight {

@@ -284,6 +284,7 @@ function BookingStepper() {
                     <div className="text-sm text-muted-foreground">
                       <div>{state.client.name}</div>
                       <div>{state.client.nbpersonnes} personne(s)</div>
+                      <div>Destination : {state.client.destination}</div>
                     </div>
                   </div>
                 )}

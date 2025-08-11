@@ -80,7 +80,7 @@ export default function SummaryStep() {
         clientId: clientId!,
         status: "en_attente",
         totalPrice: state.totalPrice.toString(),
-
+        destination: state.client.destination,
         dateCreated: formatDate(new Date()),
         dateTravel: formatDate(state.client.dateTravel),
         dateReturn: formatDate(state.client.dateReturn),

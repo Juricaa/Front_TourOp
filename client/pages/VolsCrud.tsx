@@ -271,7 +271,7 @@ export default function VolsCrud() {
             className="pl-9"
           />
         </div>
-        <Select value={filterAirline} onValueChange={setFilterAirline}>
+        {/* <Select value={filterAirline} onValueChange={setFilterAirline}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Compagnie" />
           </SelectTrigger>
@@ -283,7 +283,7 @@ export default function VolsCrud() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
         <Select value={filterClass} onValueChange={setFilterClass}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Classe" />
@@ -297,7 +297,7 @@ export default function VolsCrud() {
             ))}
           </SelectContent>
         </Select>
-        <Select
+        {/* <Select
           value={filterAvailability}
           onValueChange={setFilterAvailability}
         >
@@ -310,7 +310,7 @@ export default function VolsCrud() {
             <SelectItem value="limited">Places limitées</SelectItem>
             <SelectItem value="full">Complet</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Flight Grid */}

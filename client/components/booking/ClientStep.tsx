@@ -34,6 +34,7 @@ export default function ClientStep() {
     notes: "",
     dateTravel: "",
     dateReturn: "",
+    destination: "",
   };
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function ClientStep() {
         ? parseInt(client.nbpersonnes)
         : client.nbpersonnes || 2,
       notes: client.notes,
-      dateTravel: clientForm.dateTravel ,
+      dateTravel: clientForm.dateTravel,
       dateReturn: clientForm.dateReturn,
     };
     setClient(bookingClient);
@@ -97,12 +98,12 @@ export default function ClientStep() {
       // Validate that return date is after travel date
       const travelDate = new Date(clientForm.dateTravel);
       const returnDate = new Date(clientForm.dateReturn);
-      
+
       if (returnDate <= travelDate) {
         alert("La date de retour doit être après la date de voyage");
         return;
       }
-      
+
       setClient(clientForm);
     } else {
       alert("Veuillez remplir tous les champs obligatoires, y compris les dates de voyage");
@@ -179,7 +180,7 @@ export default function ClientStep() {
             </div>
           </div>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <Button
               variant="outline"
               onClick={() => setShowNewClientForm(true)}
@@ -188,7 +189,7 @@ export default function ClientStep() {
               <Plus className="w-4 h-4 mr-2" />
               Créer un nouveau client
             </Button>
-          </div>
+          </div> */}
         </>
       )}
 
@@ -212,14 +213,17 @@ export default function ClientStep() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nom complet *</Label>
-              <Input
-                id="name"
-                value={clientForm.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Nom et prénom du client"
-                required
-              />
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="destination">Destination *</Label>
+                <Input
+                  id="destination"
+                  value={clientForm.destination}
+                  onChange={(e) => handleInputChange("destination", e.target.value)}
+                  placeholder="Ville ou lieu de destination"
+                  required
+                />
+              </div>
+
             </div>
 
             <div className="space-y-2">
@@ -273,7 +277,8 @@ export default function ClientStep() {
               />
             </div>
 
-            <div className="space-y-2">
+
+            {/* <div className="space-y-2">
               <Label htmlFor="nationality">Nationalité *</Label>
               <Select
                 value={clientForm.nationality}
@@ -304,7 +309,7 @@ export default function ClientStep() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             <div className="space-y-2">
               <Label htmlFor="nbpersonnes">Nombre de personnes *</Label>
@@ -337,16 +342,16 @@ export default function ClientStep() {
               />
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            {/* <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notes et préférences</Label>
               <Textarea
-                id="notes"
+                id="notes"  
                 value={clientForm.notes}
                 onChange={(e) => handleInputChange("notes", e.target.value)}
                 placeholder="Préférences alimentaires, besoins spéciaux, notes importantes..."
                 rows={3}
               />
-            </div>
+            </div> */}
           </div>
 
           {state.client && (

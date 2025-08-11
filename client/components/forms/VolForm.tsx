@@ -134,7 +134,7 @@ const VolForm: React.FC<VolFormProps> = ({
                   route: { ...prev.route, from: e.target.value },
                 }))
               }
-              placeholder="Antananarivo"
+              placeholder=""
               required
             />
           </div>
@@ -149,7 +149,7 @@ const VolForm: React.FC<VolFormProps> = ({
                   route: { ...prev.route, to: e.target.value },
                 }))
               }
-              placeholder="Nosy Be"
+              placeholder=""
               required
             />
           </div>

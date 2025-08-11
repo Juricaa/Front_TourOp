@@ -79,8 +79,8 @@ export default function FlightsStep() {
   const [flightForm, setFlightForm] = useState({
     departureDate: "",
     returnDate: "",
-    departureCity: "Antananarivo",
-    arrivalCity: "Nosy Be",
+    departureCity: "",
+    arrivalCity: "",
     passengers: state.client?.nbpersonnes || 1,
   });
 
@@ -105,7 +105,7 @@ export default function FlightsStep() {
   // Close create flight dialog after adding a flight
   useEffect(() => {
     if (!createLoading && isCreateDialogOpen) {
-      setIsCreateDialogOpen(true  );
+      setIsCreateDialogOpen(true);
     }
   }, [createLoading, isCreateDialogOpen]);
   const [displayAllFlights, setDisplayAllFlights] = useState(false);
@@ -446,53 +446,26 @@ export default function FlightsStep() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="departureCity">Aéroport de départ</Label>
-              <Select
+              <Input
+                id="departureCity"
                 value={flightForm.departureCity}
-                onValueChange={(value) =>
-                  setFlightForm({ ...flightForm, departureCity: value })
+                onChange={(e) =>
+                  setFlightForm({ ...flightForm, departureCity: e.target.value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Antananarivo">Antananarivo</SelectItem>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Toamasina">Toamasina</SelectItem>
-                  <SelectItem value="Toliara">Toliara</SelectItem>
-                  <SelectItem value="Paris">Paris</SelectItem>
-                  <SelectItem value="Lyon">Lyon</SelectItem>
-                  <SelectItem value="Marseille">Marseille</SelectItem>
-                  <SelectItem value="Toulouse">Toulouse</SelectItem>
-                  <SelectItem value="Nice">Nice</SelectItem>
-                  <SelectItem value="New York">New York</SelectItem>
-                  <SelectItem value="London">London</SelectItem>
-                  <SelectItem value="Tokyo">Tokyo</SelectItem>
-                  <SelectItem value="Sydney">Sydney</SelectItem>
-                  <SelectItem value="Berlin">Berlin</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Saisir l'aéroport de départ"
+              />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="arrivalCity">Aéroport d’arrivée</Label>
-              <Select
+              <Input
+                id="arrivalCity"
                 value={flightForm.arrivalCity}
-                onValueChange={(value) =>
-                  setFlightForm({ ...flightForm, arrivalCity: value })
+                onChange={(e) =>
+                  setFlightForm({ ...flightForm, arrivalCity: e.target.value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Antananarivo">Antananarivo</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Toamasina">Toamasina</SelectItem>
-                  <SelectItem value="Toliara">Toliara</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Saisir l'aéroport d’arrivée"
+              />
             </div>
           </div>
         </CardContent>
@@ -665,8 +638,8 @@ export default function FlightsStep() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Basic Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          {/* Basic Filters d:grid-cols-4 */}
+          <div className="grid grid-cols-1 m gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -677,7 +650,7 @@ export default function FlightsStep() {
               />
             </div>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Type de vol" />
               </SelectTrigger>
@@ -716,7 +689,7 @@ export default function FlightsStep() {
                 <SelectItem value="Limité">Limité</SelectItem>
                 <SelectItem value="Complet">Complet</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
 
           {/* Advanced Filters */}

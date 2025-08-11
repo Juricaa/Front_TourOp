@@ -29,15 +29,7 @@ interface VoitureFormProps {
 
 const vehicleTypes = ["Berline", "SUV", "4x4", "Minibus", "Économique", "Luxe"];
 
-const locations = [
-  "Antananarivo",
-  "Andasibe",
-  "Nosy Be",
-  "Morondava",
-  "Diego Suarez",
-  "Fianarantsoa",
-  "Sainte-Marie",
-];
+const locations = [""];
 
 const features = [
   "climatisation",
@@ -139,55 +131,25 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="pickup">Lieu de prise en charge</Label>
-              <Select
+              <Input
                 value={formData.pickupLocation}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, pickupLocation: value })
+                onChange={(e) =>
+                  setFormData({ ...formData, pickupLocation: e.target.value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Aéroport Antananarivo">
-                    Aéroport Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Centre-ville Antananarivo">
-                    Centre-ville Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Andasibe">Andasibe</SelectItem>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Morondava">Morondava</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Fianarantsoa">Fianarantsoa</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="ex : Antananarivo"
+              />
+                
             </div>
             <div className="space-y-2">
               <Label htmlFor="dropoff">Lieu de restitution</Label>
-              <Select
+              <Input
                 value={formData.dropoffLocation}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, dropoffLocation: value })
+                onChange={(e) =>
+                  setFormData({ ...formData, dropoffLocation: e.target.value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Aéroport Antananarivo">
-                    Aéroport Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Centre-ville Antananarivo">
-                    Centre-ville Antananarivo
-                  </SelectItem>
-                  <SelectItem value="Andasibe">Andasibe</SelectItem>
-                  <SelectItem value="Nosy Be">Nosy Be</SelectItem>
-                  <SelectItem value="Morondava">Morondava</SelectItem>
-                  <SelectItem value="Diego Suarez">Diego Suarez</SelectItem>
-                  <SelectItem value="Fianarantsoa">Fianarantsoa</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="ex : Antsirabe"
+              />
+               
             </div>
           </div>
         </div>
@@ -203,7 +165,6 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
               }
               placeholder="Toyota"
               required
-            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="model">Modèle</Label>
@@ -213,7 +174,7 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, model: e.target.value }))
               }
-              placeholder="Land Cruiser"
+              placeholder="ex : Land Cruiser"
               required
             />
           </div>
@@ -222,43 +183,27 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Select
+            <Input
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, type: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, type: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicleTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+              placeholder="ex : Minibus , 4x4"
+            />
+             
           </div>
           <div className="space-y-2">
             <Label htmlFor="location">Localisation</Label>
-            <Select
+            <Input
+              id="location"
               value={formData.location}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, location: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="ex : Antananarivo"
+            />
+              
           </div>
         </div>
 

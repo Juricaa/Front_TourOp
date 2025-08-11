@@ -66,16 +66,7 @@ const categories = [
   "Sport",
 ];
 
-const locations = [
-  "Andasibe",
-  "Mantadia",
-  "Nosy Be",
-  "Sainte-Marie",
-  "Isalo",
-  "Tsingy",
-  "Morondava",
-  "Diego Suarez",
-];
+const locations = [];
 
 const difficulties = ["facile", "modéré", "difficile"];
 
@@ -278,7 +269,7 @@ export default function ActivitesCrud() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterLocation} onValueChange={setFilterLocation}>
+        {/* <Select value={filterLocation} onValueChange={setFilterLocation}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Localisation" />
           </SelectTrigger>
@@ -303,7 +294,7 @@ export default function ActivitesCrud() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Activity Grid */}
@@ -559,7 +550,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
-              placeholder="Randonnée dans les Tsingy"
+              placeholder="Randonnée Parc"
               required
             />
           </div>
@@ -588,23 +579,14 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="location">Localisation</Label>
-            <Select
-              value={formData.location}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, location: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+           <Input
+                                       value={formData.location}
+                                       onChange={(e) =>
+                                           setFormData((prev) => ({ ...prev, location: e.target.value }))
+                                       }
+                                       placeholder="ex : Ranomafana"
+                                   />
+                                       
           </div>
           <div className="space-y-2">
             <Label htmlFor="duration">Durée</Label>

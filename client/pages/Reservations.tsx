@@ -427,13 +427,13 @@ export default function Reservations() {
                     <TableCell>
                       <div>
                         <div className="font-medium">
+                           
                           <div className="space-y-1">
-                            {reservation.clientId.destinations?.map((destination, index) => (
-                              <div key={index} className="flex items-center text-sm text-gray-700">
-                                <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                                {destination}
+                            <div className="flex items-center text-sm text-gray-700">
+                            <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                                {reservation.destination}
                               </div>
-                            ))}
+                          
                           </div>
                         </div>
                       </div>

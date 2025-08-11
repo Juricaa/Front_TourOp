@@ -62,24 +62,9 @@ import { hebergementService } from "@/services/hebergementService";
 import { toast } from "@/hooks/use-toast";
 
 
-const accommodationTypes = [
-  "Bungalow",
-  "Lodge",
-  "Hôtel",
-  "Resort",
-  "Guesthouse",
-];
+const accommodationTypes = [""];
 
-const locations = [
-  "Andasibe",
-  "Mantadia",
-  "Nosy Be",
-  "Sainte-Marie",
-  "Isalo",
-  "Tsingy",
-  "Morondava",
-  "Diego Suarez",
-];
+const locations = [""];
 
 const amenityIcons: Record<string, any> = {
   wifi: Wifi,
@@ -227,11 +212,10 @@ export default function GestionHebergement() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating)
+        className={`w-4 h-4 ${i < Math.floor(rating)
             ? "text-yellow-400 fill-current"
             : "text-gray-300"
-        }`}
+          }`}
       />
     ));
   };
@@ -283,7 +267,7 @@ export default function GestionHebergement() {
             className="pl-9"
           />
         </div>
-        <Select
+        {/* <Select
           value={filterType}
           onValueChange={(value) => setFilterType(value)}
         >
@@ -298,8 +282,8 @@ export default function GestionHebergement() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
-        <Select
+        </Select> */}
+        {/* <Select
           value={filterLocation}
           onValueChange={(value) => setFilterLocation(value)}
         >
@@ -314,7 +298,7 @@ export default function GestionHebergement() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
         <Button onClick={fetchHebergements} variant="outline">
           Appliquer
         </Button>
@@ -400,7 +384,7 @@ export default function GestionHebergement() {
                     <span>Capacité: {hebergement.capacity} personnes</span>
                   </div>
                   <div className="text-sm font-semibold text-foreground">
-                      <span>{formatCurrency(hebergement.priceRange)} Ar/jour</span>
+                    <span>{formatCurrency(hebergement.priceRange)} Ar/jour</span>
                   </div>
                   {hebergement.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
@@ -541,46 +525,27 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Type</Label>
-            <Select
+            <Input
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, type: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, type: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {accommodationTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="saisir le type Bungalow, ..."
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="location">Localisation</Label>
-            <Select
+            <Input
               value={formData.location}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, location: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Saisir la localisation"
+            />
+
           </div>
           <div className="space-y-2">
             <Label htmlFor="capacity">Capacité</Label>

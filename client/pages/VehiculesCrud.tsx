@@ -62,17 +62,9 @@ import { JSX } from "react/jsx-runtime";
 import { toast } from "@/hooks/use-toast";
 
 
-const vehicleTypes = ["Berline", "SUV", "4x4", "Minibus", "Économique", "Luxe"];
+const vehicleTypes = [""];
 
-const locations = [
-  "Antananarivo",
-  "Andasibe",
-  "Nosy Be",
-  "Morondava",
-  "Diego Suarez",
-  "Fianarantsoa",
-  "Sainte-Marie",
-];
+const locations = [""];
 
 const features = [
   "climatisation",
@@ -152,14 +144,14 @@ export default function VehiculesCrud() {
         setIsCreateDialogOpen(false);
         unlockBody();
         toast({
-                  title: "Succès",
-                  description: (
-                    <div className="flex items-center gap-2 text-emerald-700">
-                      <CheckCircle className="w-5 h-5" />
-                      Le vehicule a été créé avec succès.
-                    </div>
-                  ),
-                });
+          title: "Succès",
+          description: (
+            <div className="flex items-center gap-2 text-emerald-700">
+              <CheckCircle className="w-5 h-5" />
+              Le vehicule a été créé avec succès.
+            </div>
+          ),
+        });
       } else {
         alert(`Erreur: ${response.error}`);
         unlockBody();
@@ -297,7 +289,7 @@ export default function VehiculesCrud() {
             className="pl-9"
           />
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
+        {/* <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -322,7 +314,7 @@ export default function VehiculesCrud() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
         <Select
           value={filterAvailability}
           onValueChange={setFilterAvailability}
@@ -431,7 +423,7 @@ export default function VehiculesCrud() {
                     <span>{voiture.capacity} places</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-blue-800">
-                    
+
                     <span>{formatCurrency(voiture.pricePerDay)} Ar/jour</span>
                   </div>
                   {voiture.description && (
@@ -591,43 +583,25 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="vehicleType">Type</Label>
-            <Select
+            <Input
               value={formData.vehicleType}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, vehicleType: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, vehicleType: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicleTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+               placeholder="ex : Minibus , 4x4"
+            />
+
           </div>
           <div className="space-y-2">
             <Label htmlFor="location">Localisation</Label>
-            <Select
+            <Input
+              id="location"
               value={formData.location}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, location: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="ex : Antananarivo"
+            />
           </div>
         </div>
 

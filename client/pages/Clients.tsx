@@ -187,7 +187,7 @@ export default function Clients() {
                   <TableHead>Nationalité</TableHead>
                   <TableHead>Personnes</TableHead>
                   <TableHead>Dernière Visite</TableHead>
-                  <TableHead>Destinations</TableHead>
+                  <TableHead>Destinations d'intérêt </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>

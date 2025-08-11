@@ -35,16 +35,7 @@ const categories = [
     "Sport",
 ];
 
-const locations = [
-    "Andasibe",
-    "Mantadia",
-    "Nosy Be",
-    "Sainte-Marie",
-    "Isalo",
-    "Tsingy",
-    "Morondava",
-    "Diego Suarez",
-];
+const locations = [];
 
 const difficulties = ["facile", "modéré", "difficile"];
 
@@ -165,23 +156,14 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="location">Localisation</Label>
-                        <Select
+                        <Input
                             value={formData.location}
-                            onValueChange={(value) =>
-                                setFormData((prev) => ({ ...prev, location: value }))
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, location: e.target.value }))
                             }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {locations.map((location) => (
-                                    <SelectItem key={location} value={location}>
-                                        {location}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            placeholder="ex : Ranomafana"
+                        />
+                            
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="duration">Durée</Label>
