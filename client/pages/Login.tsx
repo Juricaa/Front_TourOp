@@ -20,9 +20,12 @@ export default function Login() {
 
   // If already authenticated, redirect to role-specific dashboard
   if (isAuthenticated && user) {
-    const from = location.state?.from?.pathname;
+    // const from = location.state?.from?.pathname;
+    const from = "/";
+   
     if (from) {
       return <Navigate to={from} replace />;
+     
     }
     
     // Redirect to role-specific dashboard

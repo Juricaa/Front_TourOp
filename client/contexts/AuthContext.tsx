@@ -49,7 +49,7 @@ const mockUsers: (User & { password: string })[] = [
 const rolePermissions = {
   admin: {
     routes: ["/", "/destinations", "/settings"], // Dashboard, destinations and settings for viewing
-    permissions: ["read"] as const,
+    permissions: ["read", "write", "delete"] as const,
   },
   secretary: {
     routes: [
@@ -76,6 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const savedAccessToken = localStorage.getItem('accessToken');
+
+   
+    const expiry = sessionStorage.getItem('sessionExpiry');
+  
+
+    if (expiry && Date.now() > Number(expiry)) {
+      logout();
+      return;
+    }
   
     if (savedUser && savedAccessToken) {
       try {
@@ -110,6 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
       setUser(data.user);
       setIsAuthenticated(true);
+      
+      const expiryTime = Date.now() + 1 * 60 * 1000;
+      sessionStorage.setItem('sessionExpiry', expiryTime.toString());
   
       return true;
     } catch (error) {
