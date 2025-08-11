@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       setIsAuthenticated(true);
       
-      const expiryTime = Date.now() + 1 * 60 * 1000;
+      const expiryTime = Date.now() +  30 * 60 * 1000;
       sessionStorage.setItem('sessionExpiry', expiryTime.toString());
   
       return true;
