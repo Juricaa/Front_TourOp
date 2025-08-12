@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,9 +45,12 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
+      // @ts-ignore
+      const { success, message } = await login(email, password);
       if (!success) {
-        setError("Email ou mot de passe incorrect");
+        setError(message || "Email ou mot de passe incorrect"); // Affiche le message spécifique ou un défaut
+        setIsLoading(false);
+        return;
       }
     } catch (error) {
       setError("Une erreur est survenue lors de la connexion");
@@ -174,6 +177,19 @@ export default function Login() {
             </div>
           </CardContent>
         </Card> */}
+
+        {/* Signup Link */}
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Pas encore de compte ?{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-madagascar-600 hover:text-madagascar-700"
+            >
+              S'inscrire
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

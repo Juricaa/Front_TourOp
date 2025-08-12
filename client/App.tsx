@@ -36,6 +36,7 @@ import ClientDetail from "./pages/ClientDetail";
 import TravelPlanDetail from "./pages/TravelPlanDetail";
 import InvoicePreview from "./pages/InvoicePreview";
 import TravelPlanPreview from "./pages/TravelPlanPreview";
+import Signup  from "./pages/Signup";
 
 import { BookingProvider } from "@/contexts/BookingContext";
 
@@ -51,6 +52,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route
                 path="/"
                 element={

@@ -15,6 +15,12 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  is_verified : number;
+  is_active : number;
+  is_staff : number;
+  last_login: Date;
+  phone : string;
+  
 }
 
 interface AuthContextType {
@@ -29,22 +35,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock users data - in real app this would come from backend
-const mockUsers: (User & { password: string })[] = [
-  {
-    id: "1",
-    email: "admin@madagascar-tours.mg",
-    password: "admin123",
-    name: "Administrateur",
-    role: "admin",
-  },
-  {
-    id: "2",
-    email: "secretaire@madagascar-tours.mg",
-    password: "secret123",
-    name: "Secrétaire",
-    role: "secretary",
-  },
-];
+
 
 // Routes accessible by role
 const rolePermissions = {
@@ -128,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login/`, {
         method: 'POST',
@@ -139,7 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   
       if (!response.ok) {
-        return false;
+        const errorData = await response.json();
+            console.log("error:", errorData);
+            return { success: false, message: errorData.error };
       }
   
       const data = await response.json();
