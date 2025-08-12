@@ -55,6 +55,7 @@ import {
   Info,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from 'date-fns';
 
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
@@ -107,6 +108,7 @@ export default function UserManagement() {
           title: "Succès",
           description: "Utilisateur mis à jour avec succès",
         });
+        loadUsers();
       } else {
         throw new Error(response.error || 'Erreur lors de la mise à jour');
       }
@@ -171,6 +173,7 @@ export default function UserManagement() {
 
   const handleEditUser = async () => {
     if (!editingUser) return;
+    console.log(editingUser)
 
     try {
       await userService.updateUser(editingUser.id, editingUser);
@@ -240,10 +243,7 @@ export default function UserManagement() {
             Gérez les comptes utilisateurs, validez les accès et autorisations (stockage local)
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nouvel Utilisateur
-        </Button>
+      
       </div>
 
       {/* Statistiques rapides */}
@@ -365,7 +365,7 @@ export default function UserManagement() {
                     {user.last_login ? (
                       <div className="text-sm flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(user.last_login).toLocaleDateString('fr-FR')}
+                        {new Date(user.last_login).toLocaleDateString('fr-FR')} à  {new Date(user.last_login).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})} 
                       </div>
                     ) : (
                       <span className="text-muted-foreground">Jamais</span>
@@ -478,7 +478,7 @@ export default function UserManagement() {
                 </Label>
                 <Select
                   value={editingUser.role}
-                  onValueChange={(value: 'admin' | 'secretary' | 'secretaire') => 
+                  onValueChange={(value: 'admin' | 'secretary') => 
                     setEditingUser({ ...editingUser, role: value })
                   }
                 >
@@ -488,7 +488,6 @@ export default function UserManagement() {
                   <SelectContent>
                     <SelectItem value="admin">Administrateur</SelectItem>
                     <SelectItem value="secretary">Secrétaire</SelectItem>
-                    <SelectItem value="secretaire">Secrétaire</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

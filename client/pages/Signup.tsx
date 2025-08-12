@@ -82,7 +82,8 @@ export default function Signup() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
+        setSuccess("Compte créé. En attente de validation par l’administrateur.");
+        // navigate("/login"); // Assuming you have `useNavigate` imported and initialized
         setFormData({
           name: "",
           email: "",

@@ -4,7 +4,7 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  role: 'admin' | 'secretaire' | 'secretary';
+  role: 'admin' | 'secretary';
   is_verified: boolean;
   phone?: string;
   is_staff?: boolean;
