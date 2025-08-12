@@ -37,6 +37,8 @@ import TravelPlanDetail from "./pages/TravelPlanDetail";
 import InvoicePreview from "./pages/InvoicePreview";
 import TravelPlanPreview from "./pages/TravelPlanPreview";
 import Signup  from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import { BookingProvider } from "@/contexts/BookingContext";
 import UserManagement from "./pages/UserManangement";
@@ -54,6 +56,8 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route
                 path="/"
                 element={

@@ -22,12 +22,12 @@ export default function Login() {
   if (isAuthenticated && user) {
     // const from = location.state?.from?.pathname;
     const from = "/";
-   
+
     if (from) {
       return <Navigate to={from} replace />;
-     
+
     }
-    
+
     // Redirect to role-specific dashboard
     switch (user.role) {
       case "admin":
@@ -149,6 +149,7 @@ export default function Login() {
               </Button>
             </form>
           </CardContent>
+
         </Card>
 
         {/* Demo Credentials
@@ -180,7 +181,7 @@ export default function Login() {
 
         {/* Signup Link */}
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-4">
             Pas encore de compte ?{" "}
             <Link
               to="/signup"
@@ -189,6 +190,19 @@ export default function Login() {
               S'inscrire
             </Link>
           </p>
+
+
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Mot de passe oublié ?{" "}
+              <Link
+                to="/forgot-password"
+                className="font-medium text-madagascar-600 hover:text-madagascar-700"
+              >
+                Réinitialiser
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
