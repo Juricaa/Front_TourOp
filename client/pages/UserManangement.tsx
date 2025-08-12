@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { userService } from "../services/userService";
-import type { User } from "@/contexts/AuthContext";
+import { userService } from "@/services/userService";
+import type { User } from "@/services/userService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,8 +72,16 @@ export default function UserManagement() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const userData = await userService.getAllUsers();
-      setUsers(userData);
+      const response = await userService.getUsers();
+      console.log("donne reçoit:", response);
+      
+      // Handle new API response format
+      if (response.success && response.data) {
+        setUsers(response.data);
+      } else {
+        console.error('Invalid API response format:', response);
+        setUsers([]);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
       toast({
@@ -88,16 +96,48 @@ export default function UserManagement() {
 
   const handleUpdateUser = async (userId: number, updates: Partial<User>) => {
     try {
-      const updatedUser = await userService.updateUser(userId, updates);
-      setUsers(prev =>
-        prev.map(user =>
-          user.id === userId ? updatedUser : user
-        )
-      );
+      const response = await userService.updateUser(userId, updates);
+      if (response.success && response.data) {
+        setUsers(prev =>
+          prev.map(user =>
+            user.id === userId ? response.data! : user
+          )
+        );
+        toast({
+          title: "Succès",
+          description: "Utilisateur mis à jour avec succès",
+        });
+      } else {
+        throw new Error(response.error || 'Erreur lors de la mise à jour');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
       toast({
-        title: "Succès",
-        description: "Utilisateur mis à jour avec succès (mode local)",
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour de l'utilisateur",
+        variant: "destructive",
       });
+    }
+  };
+
+
+  const handleVerifyUser = async (userId: number) => {
+    try {
+      const response = await userService.verifyUser(userId);
+      if (response.success && response.data) {
+        setUsers(prev =>
+          prev.map(user =>
+            user.id === userId ? response.data! : user
+          )
+        );
+        toast({
+          title: "Succès",
+          description: "Utilisateur mis à jour avec succès",
+        });
+        loadUsers();
+      } else {
+        throw new Error(response.error || 'Erreur lors de la mise à jour');
+      }
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error);
       toast({
@@ -334,13 +374,18 @@ export default function UserManagement() {
                   
                   <TableCell>
                     <div className="flex gap-2">
+                      
+                      
+                     {user.is_verified===false && (
                       <Button
                         size="sm"
                         variant={user.is_verified ? "outline" : "default"}
-                        onClick={() => handleUpdateUser(user.id, { is_verified: !user.is_verified })}
+                        onClick={() => handleVerifyUser(user.id)}
                       >
                         {user.is_verified ? <UserX className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
                       </Button>
+                      
+                     )} 
                       
                       <Button
                         size="sm"

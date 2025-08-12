@@ -39,6 +39,7 @@ import TravelPlanPreview from "./pages/TravelPlanPreview";
 import Signup  from "./pages/Signup";
 
 import { BookingProvider } from "@/contexts/BookingContext";
+import UserManagement from "./pages/UserManangement";
 
 const queryClient = new QueryClient();
 
@@ -267,6 +268,16 @@ const App = () => (
                   <ProtectedRoute requiredPermission="read">
                     <RoleBasedLayout>
                       <Settings />
+                    </RoleBasedLayout>
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/users"
+                element={
+                  <ProtectedRoute requiredPermission="write">
+                    <RoleBasedLayout>
+                      <UserManagement />
                     </RoleBasedLayout>
                   </ProtectedRoute>
                 }

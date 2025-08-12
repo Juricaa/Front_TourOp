@@ -27,6 +27,7 @@ import {
   Activity,
   Settings,
   HelpCircle,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +46,11 @@ const adminNavigation = [
     title: "Destinations",
     icon: Globe,
     href: "/destinations",
+  },
+  {
+    title: "Gestion Utilisateurs",
+    icon: UserCheck,
+    href: "/users",
   },
 ];
 
