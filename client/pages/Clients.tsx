@@ -24,7 +24,7 @@ import {
   Edit,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Client,ApiResponse } from "@shared/types";
+import type { Client, ApiResponse } from "@shared/types";
 import { clientService } from "@/services/clientService";
 
 export default function Clients() {
@@ -249,13 +249,16 @@ export default function Clients() {
                           <Badge
                             key={dest}
                             variant="secondary"
-                            className="text-xs bg-madagascar-50 text-madagascar-700"
+                            className="text-xs bg-green-50 text-green-700 border-green-200" // Couleurs de succès
                           >
                             {dest}
                           </Badge>
                         ))}
                         {client.destinations.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-green-50 text-green-700 border-green-200" // Même style pour le badge "+X"
+                          >
                             +{client.destinations.length - 2}
                           </Badge>
                         )}

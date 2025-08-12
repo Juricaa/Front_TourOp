@@ -88,21 +88,43 @@ export default function AdminDashboard() {
     };
 
     const calculateMonthlyRevenue = (factures: any[]) => {
-      const monthlyData: { [key: string]: number } = {};
+      const monthlyData: { [key: string]: { display: string; total: number } } = {};
       
       factures.forEach(facture => {
-        if (facture.dateEmission) {
-          const month = new Date(facture.dateEmission).toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'short' 
-          });
-          monthlyData[month] = (monthlyData[month] || 0) + Number((facture as any).montantTotal || 0);
+        // Utiliser dateCreated au lieu de dateEmission comme demandé
+        const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
+        
+        if (dateSource) {
+          const date = new Date(dateSource);
+          if (!isNaN(date.getTime())) {
+            // Format YYYY-MM pour un tri chronologique correct
+            const yearMonth = date.toISOString().slice(0, 7);
+            const displayMonth = date.toLocaleDateString('fr-FR', { 
+              year: 'numeric', 
+              month: 'long' 
+            });
+            
+            const amount = Number(
+              (facture as any).totalPrice || 
+              (facture as any).montant || 
+              (facture as any).montantTotal || 0
+            );
+            
+            if (!monthlyData[yearMonth]) {
+              monthlyData[yearMonth] = { display: displayMonth, total: 0 };
+            }
+            monthlyData[yearMonth].total += amount;
+          }
         }
       });
 
+      // Trier chronologiquement et formater pour l'affichage
       return Object.entries(monthlyData)
-        .map(([month, revenue]) => ({ month, revenue }))
-        .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, data]) => ({
+          month: data.display,
+          revenue: data.total
+        }));
     };
 
     const calculatePopularDestinations = (reservations: any[]) => {
@@ -294,7 +316,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-orange-900">
-                €{stats.monthlyRevenue.toLocaleString()}
+                {stats.monthlyRevenue.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4 text-orange-600" />

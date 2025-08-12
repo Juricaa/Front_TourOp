@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { userService } from "@/services/userService";
 import type { User } from "@/services/userService";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,7 +79,17 @@ export default function UserManagement() {
       
       // Handle new API response format
       if (response.success && response.data) {
-        setUsers(response.data);
+        // Filtrer l'admin connecté de la liste
+        const currentUser = localStorage.getItem('user');
+        if (currentUser) {
+          const currentUserData = JSON.parse(currentUser);
+          const filteredUsers = response.data.filter(
+            (user: User) => user.email !== currentUserData.email
+          );
+          setUsers(filteredUsers);
+        } else {
+          setUsers(response.data);
+        }
       } else {
         console.error('Invalid API response format:', response);
         setUsers([]);
