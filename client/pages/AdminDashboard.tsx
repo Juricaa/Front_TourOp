@@ -4,11 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
-  TrendingDown,
   Users,
   CalendarDays,
   Euro,
-  MapPin,
   BarChart3,
   PieChart,
   Activity,
@@ -17,6 +15,14 @@ import {
   Target,
   Trophy,
   Clock,
+  Plane,
+  Car,
+  Home,
+  MapPin,
+  Star,
+  Package,
+  ShoppingCart,
+  TrendingDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { DashboardStats, Reservation } from "@shared/types";
@@ -25,10 +31,25 @@ import { reservationService } from "@/services/reservationService";
 import { clientService } from "@/services/clientService";
 import { hebergementService } from "@/services/hebergementService";
 import { factureService } from "@/services/factureService";
+import { volService } from "@/services/volService";
+import { voitureService } from "@/services/voitureService";
+import { activiteService } from "@/services/activiteService";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminStats, setAdminStats] = useState({
+    totalFlights: 0,
+    totalVehicles: 0,
+    totalActivities: 0,
+    totalAccommodations: 0,
+    totalRevenue: 0,
+    totalClients: 0,
+    totalReservations: 0,
+    monthlyRevenue: 0,
+    popularDestinations: [],
+    recentReservations: [],
+  });
   const { user } = useAuth();
 
   useEffect(() => {
@@ -38,12 +59,18 @@ export default function AdminDashboard() {
           reservationsResponse,
           clientsResponse,
           hebergementsResponse,
-          facturesResponse
+          facturesResponse,
+          flightsResponse,
+          vehiclesResponse,
+          activitiesResponse,
         ] = await Promise.all([
           reservationService.getReservations(),
           clientService.getClients(),
           hebergementService.getHebergements(),
-          factureService.getFactures()
+          factureService.getFactures(),
+          volService.getVols(),
+          voitureService.getVoitures(),
+          activiteService.getActivites(),
         ]);
 
         // Extract data from API responses
@@ -51,11 +78,17 @@ export default function AdminDashboard() {
         const clients = clientsResponse.data || [];
         const hebergements = hebergementsResponse.data || [];
         const factures = facturesResponse.data || [];
+        const flights = flightsResponse.data || [];
+        const vehicles = vehiclesResponse.data || [];
+        const activities = activitiesResponse.data || [];
 
         // Calcul des statistiques
         const totalReservations = factures.length;
         const totalClients = clients.length;
         const totalHebergements = hebergements.length;
+        const totalFlights = flights.length;
+        const totalVehicles = vehicles.length;
+        const totalActivities = activities.length;
         
         // Calcul du chiffre d'affaires avec conversion en nombre
         const totalRevenue = factures.reduce((sum, facture) => {
@@ -79,7 +112,24 @@ export default function AdminDashboard() {
             .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
             .slice(0, 5),
         };
+
+        const adminRealStats = {
+          totalFlights,
+          totalVehicles,
+          totalActivities,
+          totalAccommodations: totalHebergements,
+          totalRevenue,
+          totalClients,
+          totalReservations,
+          monthlyRevenue: monthlyRevenue.reduce((sum, item) => sum + item.revenue, 0),
+          popularDestinations,
+          recentReservations: reservations
+            .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
+            .slice(0, 5),
+        };
+
         setStats(realStats);
+        setAdminStats(adminRealStats);
       } catch (error) {
         console.error("Erreur lors du chargement des statistiques:", error);
       } finally {
@@ -339,6 +389,119 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Service Inventory Statistics */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900">Inventaire des Services</h2>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+            <Package className="w-4 h-4 mr-1" />
+            Vue d'ensemble
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-sky-50 to-sky-100">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-sky-700">
+                  Vols Disponibles
+                </CardTitle>
+                <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
+                  <Plane className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-sky-900">
+                  {adminStats.totalFlights}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-sky-600">
+                    vols enregistrés
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-green-700">
+                  Véhicules Disponibles
+                </CardTitle>
+                <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                  <Car className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-green-900">
+                  {adminStats.totalVehicles}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-green-600">
+                    véhicules en stock
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-amber-700">
+                  Activités Proposées
+                </CardTitle>
+                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-amber-900">
+                  {adminStats.totalActivities}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-amber-600">
+                    activités disponibles
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-rose-50 to-rose-100">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-rose-700">
+                  Hébergements Disponibles
+                </CardTitle>
+                <div className="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center">
+                  <Home className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-rose-900">
+                  {adminStats.totalAccommodations}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-rose-600">
+                    hébergements répertoriés
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Analytics Section */}
