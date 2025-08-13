@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         const monthlyRevenue = calculateMonthlyRevenue(factures);
         
         // Destinations populaires (à adapter selon votre structure de données)
-        const popularDestinations = calculatePopularDestinations(reservations);
+        const popularDestinations = calculatePopularDestinations(factures);
 
         const realStats: DashboardStats = {
           totalClients,
@@ -127,19 +127,33 @@ export default function AdminDashboard() {
         }));
     };
 
-    const calculatePopularDestinations = (reservations: any[]) => {
-      // Cette fonction devra être adaptée selon votre structure de données
-      // Exemple basique - à personnaliser selon vos besoins
+    const calculatePopularDestinations = (factures: any[]) => {
       const destinations: { [key: string]: number } = {};
       
-      reservations.forEach(reservation => {
-        // Adapter selon votre structure de données
-        const destination = (reservation as any).destination || (reservation as any).lieu || "Non spécifié";
-        destinations[destination] = (destinations[destination] || 0) + 1;
-      });
+      factures.forEach(facture => {
+        // Extraire toutes les destinations depuis les données de la facture
+        const destinationString = (facture as any).destination || "";
+        
+        if (destinationString) {
+          // Séparer les destinations par virgule et traiter chaque destination
+          const allDestinations = destinationString
+            .split(',')
+            .map((dest: string) => dest.trim())
+            .filter((dest: string) => dest && dest !== "Non spécifié");
+          
+          // Compter chaque destination séparément
+          allDestinations.forEach((dest: string) => {
+            destinations[dest] = (destinations[dest] || 0) + 1;
+          });
+        }
+        
+          });
 
       return Object.entries(destinations)
-        .map(([name, count]) => ({ name, count }))
+        .map(([name, count]) => ({ 
+          name: name.replace(/,/g, ''), // Remove commas
+          count 
+        }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
     };
