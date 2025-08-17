@@ -15,6 +15,9 @@ import {
   Globe,
   Route,
   Shield,
+  Bell,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,9 +46,21 @@ interface DashboardStats {
   recentReservations: Reservation[];
 }
 
+interface Notification {
+  id: string;
+  type: 'warning' | 'info';
+  title: string;
+  message: string;
+  reservationId: string;
+  clientName: string;
+  daysRemaining: number;
+  dateReturn: Date;
+}
+
 export default function SecretaryDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -64,9 +79,9 @@ export default function SecretaryDashboard() {
             clientDestinations: item.destination || [],
             status: item.status,
             totalPrice: parseFloat(item.totalPrice),
-            currency: "MGA", // à adapter si besoin
+            currency: "MGA",
             dateCreated: new Date(item.dateCreated),
-            dateReturn : new Date(item.dateReturn),
+            dateReturn: new Date(item.dateReturn),
             dateTravel: new Date(item.dateTravel),
           }));
 
@@ -87,15 +102,72 @@ export default function SecretaryDashboard() {
             new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
           );
 
+          // Vérifier et mettre à jour les réservations dont la date de retour est passée
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Réinitialiser l'heure pour la comparaison
+
+          const updatedReservations = [];
+          const activeNotifications = [];
+
+          for (const reservation of sortedReservations) {
+            const dateReturn = new Date(reservation.dateReturn);
+            dateReturn.setHours(0, 0, 0, 0);
+
+            // Si la date de retour est passée ou égale à aujourd'hui et que le statut n'est pas "payé"
+            if (dateReturn <= today && reservation.status !== "payé") {
+              try {
+                // Mettre à jour le statut via l'API
+                const updateResponse = await factureService.updateFacture(reservation.id, {
+                  status: "payé"
+                });
+
+                if (updateResponse.success) {
+                  updatedReservations.push(reservation.id);
+              // Mettre à jour le statut localement
+              reservation.status = "payé";
+                }
+              } catch (error) {
+                console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
+              }
+            }
+
+            // Créer les notifications pour les réservations actives
+            const daysRemaining = Math.ceil((dateReturn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysRemaining >= 0 && daysRemaining <= 7 && reservation.status !== "payé") {
+              activeNotifications.push({
+                id: `notification-${reservation.id}`,
+                type: daysRemaining <= 3 ? 'warning' : 'info',
+                title: daysRemaining <= 1 ? 'Urgent: Fin de séjour' : 'Fin de séjour proche',
+                message: daysRemaining <= 0 
+                  ? `Le séjour de ${reservation.clientName} se termine aujourd'hui!`
+                  : daysRemaining === 1
+                  ? `Le séjour de ${reservation.clientName} se termine demain!`
+                  : `Le séjour de ${reservation.clientName} se termine dans ${daysRemaining} jours.`,
+                reservationId: reservation.id,
+                clientName: reservation.clientName,
+                daysRemaining,
+                dateReturn: reservation.dateReturn,
+              });
+            }
+          }
+
+          setNotifications(activeNotifications);
+
           // Remplir les stats
           setStats({
             totalClients: new Set(sortedReservations.map((r) => r.clientId)).size,
             totalReservations: sortedReservations.length,
             totalRevenue: sortedReservations.reduce((sum, r) => sum + r.totalPrice, 0),
-            monthlyRevenue: 0, // calcul spécifique si nécessaire
+            monthlyRevenue: 0,
             popularDestinations,
             recentReservations: sortedReservations,
           });
+
+          // Log des mises à jour effectuées
+          if (updatedReservations.length > 0) {
+            console.log(`Statut mis à jour pour ${updatedReservations.length} réservation(s):`, updatedReservations);
+          }
         }
       } catch (error) {
         console.error("Erreur API:", error);
@@ -143,6 +215,77 @@ export default function SecretaryDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Notifications pour réservations proches de la fin */}
+      {notifications.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="h-5 w-5 text-madagascar-500" />
+            <h2 className="text-lg font-semibold">Alertes Réservations</h2>
+            <Badge variant="secondary">{notifications.length}</Badge>
+          </div>
+          
+          {notifications.map((notification) => (
+            <div
+              key={notification.id}
+              className={`p-4 rounded-lg border-l-4 ${
+                notification.type === 'warning'
+                  ? 'bg-orange-50 border-orange-400 text-orange-800'
+                  : 'bg-blue-50 border-blue-400 text-blue-800'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  {notification.type === 'warning' ? (
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  ) : (
+                    <Clock className="h-5 w-5 text-blue-600" />
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">{notification.title}</h3>
+                    <Badge
+                      variant={notification.type === 'warning' ? 'destructive' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {notification.daysRemaining <= 0 ? 'Aujourd\'hui' : 
+                       notification.daysRemaining === 1 ? 'Demain' : 
+                       `Dans ${notification.daysRemaining} jours`}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-sm mt-1">{notification.message}</p>
+                  
+                  <div className="flex items-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      asChild
+                    >
+                      <Link to={`/reservations/${notification.reservationId}`}>
+                        Voir la réservation
+                      </Link>
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs"
+                      asChild
+                    >
+                      <Link to={`/clients`}>
+                        Contacter {notification.clientName}
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Actions Rapides */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
