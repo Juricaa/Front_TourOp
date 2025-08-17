@@ -331,7 +331,7 @@ export const PlansVoyage: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <div> 
           <h1 className="text-3xl font-bold">Gestion des Plans de Voyage</h1>
           <p className="text-muted-foreground">
             Créez et gérez tous vos itinéraires de voyage

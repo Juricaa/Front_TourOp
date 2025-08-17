@@ -54,7 +54,7 @@ const statusOptions = [
     color: "bg-green-100 text-green-800",
   },
   { value: "en_cours", label: "En cours", color: "bg-red-100 text-red-800" },
-  { value: "completed", label: "Terminée", color: "bg-blue-100 text-blue-800" },
+  { value: "terminé", label: "Terminée", color: "bg-blue-100 text-blue-800" },
 ];
 
 const paymentStatusOptions = [
@@ -108,6 +108,7 @@ export default function EditReservationComplete() {
     dateReturn: "",
     participants: 1,
     clientId: "",
+    destination:"",
     dateCreated: new Date(""),
   });
 
@@ -151,6 +152,7 @@ export default function EditReservationComplete() {
           participants: response.data.clientId.nbpersonnes || 1,
           clientId: response.data.clientId,
           dateCreated: response.data.dateCreated,
+          destination: response.data.destination
 
         });
         
@@ -353,12 +355,16 @@ export default function EditReservationComplete() {
     setSaving(true);
     try {
       const updateData = {
-        ...formData,
+        clientId : formData.clientId.idClient,
+        status: formData.status,
+        paymentStatus: formData.paymentStatus,
+        destination: formData.destination,
+        notes: formData.notes,
         totalPrice: activeTab === 'full' ? calculateTotalFromServices() : parseInt(formData.totalPrice.toString()) || 0,
         deposit: parseInt(formData.deposit.toString()) || 0,
         participants: parseInt(formData.participants.toString()) || 1,
-        dateTravel: formData.dateTravel ? new Date(formData.dateTravel).toISOString() : reservation.dateTravel,
-        dateReturn: formData.dateReturn ? new Date(formData.dateReturn).toISOString() : reservation.dateReturn,
+        // dateTravel: formData.dateTravel ? new Date(formData.dateTravel).toISOString() : reservation.dateTravel,
+        // dateReturn: formData.dateReturn ? new Date(formData.dateReturn).toISOString() : reservation.dateReturn,
         // Include service selections if in full mode
         ...(activeTab === 'full' && {
           vols: selectedServices.flights,
@@ -368,14 +374,14 @@ export default function EditReservationComplete() {
         }),
       };
 
-      const response = await reservationService.updateReservation(id, updateData);
+      const response = await factureService.updateFacture(id, updateData);
       
       if (response.success) {
         toast({
           title: "Réservation modifiée",
           description: "Les modifications ont été sauvegardées avec succès.",
-        });
-        navigate(`/reservations/${id}`);
+        });fetchReservation(id)
+        // navigate(`/reservations/${id}`);
       } else {
         setError(response.error || "Erreur lors de la sauvegarde");
         toast({
@@ -515,6 +521,7 @@ export default function EditReservationComplete() {
                       </Select>
                     </div>
 
+
                     <div className="space-y-2">
                       <Label htmlFor="paymentStatus">Statut de paiement</Label>
                       <Select
@@ -535,6 +542,7 @@ export default function EditReservationComplete() {
                         </SelectContent>
                       </Select>
                     </div>
+
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -596,44 +604,20 @@ export default function EditReservationComplete() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="totalPrice">
-                        Prix total ({reservation.currency})
-                      </Label>
+                  <div className="space-y-2">
+                      <Label htmlFor="participants">Destinations</Label>
                       <Input
-                        id="totalPrice"
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={formData.totalPrice}
+                        id="participants"
+                        type="text"
+                        value={formData.destination}
                         onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            totalPrice: parseInt(e.target.value) || 0,
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="deposit">
-                        Acompte versé ({reservation.currency})
-                      </Label>
-                      <Input
-                        id="deposit"
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={formData.deposit}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            deposit: parseInt(e.target.value) || 0,
-                          }))
+                          setFormData((prev) => ({ ...prev, destination: e.target.value }))
                         }
                       />
                     </div>
                   </div>
+
+            
 
                   <div className="space-y-2">
                     <Label htmlFor="notes">Notes</Label>

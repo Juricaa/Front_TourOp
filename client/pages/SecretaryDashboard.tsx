@@ -23,6 +23,7 @@ import {
 import { Link,useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { factureService } from "@/services/factureService";
+import { S } from "vitest/dist/chunks/config.d.UqE-KR0o.js";
 
 interface Reservation {
   id: string;
@@ -36,6 +37,7 @@ interface Reservation {
   dateCreated: Date;
   dateReturn: Date;
   dateTravel: Date;
+  paymentStatus: String;
 }
 
 interface DashboardStats {
@@ -61,6 +63,7 @@ interface Notification {
   date_created: Date;
   status: string;
   total: number;
+  paymentStatus: string
 }
 
 export default function SecretaryDashboard() {
@@ -69,6 +72,40 @@ export default function SecretaryDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "confirmé":
+        return "bg-forest-100 text-forest-800 border-forest-200";
+      case "en_attente":
+        return "bg-sunset-100 text-sunset-800 border-sunset-200";
+      case "cancelled":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      case "terminé":
+        return "bg-ocean-100 text-ocean-800 border-ocean-200";
+      case "en_cours":
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "confirmé":
+        return "Confirmée";
+      case "en_attente":
+        return "En attente";
+      case "cancelled":
+        return "Annulée";
+      case "terminé":
+        return "Terminée";
+      case "en_cours":
+        return "En cours";
+      default:
+        return status;
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -90,7 +127,7 @@ export default function SecretaryDashboard() {
             dateCreated: new Date(item.dateCreated),
             dateReturn: new Date(item.dateReturn),
             dateTravel: new Date(item.dateTravel),
-            
+            paymentStatus: item.paymentStatus,
             total: item.totalPrice,
             date_created: item.dateCreated,
             
@@ -124,18 +161,22 @@ export default function SecretaryDashboard() {
             const dateReturn = new Date(reservation.dateReturn);
             dateReturn.setHours(0, 0, 0, 0);
 
+           
             // Si la date de retour est passée ou égale à aujourd'hui et que le statut n'est pas "payé"
-            if (dateReturn <= today && reservation.status !== "payé") {
+            if (dateReturn <= today && reservation.status !== "terminé") {
               try {
                 // Mettre à jour le statut via l'API
                 const updateResponse = await factureService.updateFacture(reservation.id, {
-                  status: "payé"
+                  paymentStatus: "payé",
+                  status : "terminé",
+                  clientId: reservation.clientId
                 });
 
                 if (updateResponse.success) {
                   updatedReservations.push(reservation.id);
                   // Mettre à jour le statut localement
-                  reservation.status = "termine";
+                  reservation.status = "terminé";
+
                 }
               } catch (error) {
                 console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
@@ -263,8 +304,7 @@ export default function SecretaryDashboard() {
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{notification.title}</h3>
                     <Badge
-                      variant={notification.type === 'warning' ? 'destructive' : 'secondary'}
-                      className="text-xs"
+                      className={`text-xs ${getStatusColor(notification.status)}`}
                     >
                       {notification.daysRemaining <= 0 ? 'Aujourd\'hui' :
                         notification.daysRemaining === 1 ? 'Demain' :
@@ -441,14 +481,8 @@ export default function SecretaryDashboard() {
                   <p className="font-medium">
                     {reservation.currency} {reservation.totalPrice.toLocaleString()}
                   </p>
-                  <Badge
-                    variant={
-                      reservation.status === "confirmé"
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {reservation.status}
+                  <Badge className={getStatusColor(reservation.status)}>
+                    {getStatusText(reservation.status)}
                   </Badge>
                 </div>
               </div>

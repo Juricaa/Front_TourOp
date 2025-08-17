@@ -19,7 +19,7 @@ export interface CreateInvoiceData {
 }
 
 export interface UpdateInvoiceData extends Partial<CreateInvoiceData> {
-  status?: "payé" | "en_attente" | "partial" | "overdue" | "cancelled";
+  status?: "payé" | "en_attente" | "partial" | "overdue" | "cancelled" | "terminé" ;
   paymentMethod?: "cash" | "card" | "transfer" | "mobile";
   paymentDate?: Date;
   paidAmount?: number;

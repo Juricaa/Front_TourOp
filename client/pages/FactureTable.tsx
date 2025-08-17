@@ -340,7 +340,7 @@ export function FactureTable() {
     return (
         <>
             {/* 📊 Statistiques */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
                 <Card className="border-0 shadow-md">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -380,24 +380,7 @@ export function FactureTable() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="border-0 shadow-md">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Chiffre d'affaires</p>
-                                <p className="text-2xl font-bold">
-                                    {stats.totalRevenue.toLocaleString('fr-FR', {
-                                        style: 'currency',
-                                        currency: 'MGA',
-                                    })}
-                                </p>
-                            </div>
-                            <div className="p-3 rounded-lg bg-purple-100">
-                                <Star className="h-6 w-6 text-purple-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+               
             </div>
 
             {/* 🔍 Barre de recherche + filtre */}
@@ -445,7 +428,7 @@ export function FactureTable() {
                         {loading ? (
                             <TableRow><TableCell colSpan={9}>Chargement...</TableCell></TableRow>
                         ) : filteredInvoices.length === 0 ? (
-                            <TableRow><TableCell colSpan={9} className="text-center py-4 text-muted-foreground">Aucune facture trouvée.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={9} className="text-center py-4 text-muted-foreground">Aucune Plan de voyage trouvée.</TableCell></TableRow>
                         ) : (
                             filteredInvoices.map((invoice) => (
                                 <TableRow key={invoice.idFacture}>

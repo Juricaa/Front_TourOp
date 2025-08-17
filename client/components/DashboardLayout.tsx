@@ -48,14 +48,14 @@ const navigation = [
     href: "/",
   },
   {
-    title: "Clients",
-    icon: Users,
-    href: "/clients",
-  },
-  {
     title: "Réservations",
     icon: CalendarDays,
     href: "/reservations",
+  },
+  {
+    title: "Clients",
+    icon: Users,
+    href: "/clients",
   },
   {
     title: "Hébergements",
@@ -82,11 +82,11 @@ const navigation = [
     icon: Globe,
     href: "/destinations",
   },
-  {
-    title: "Factures",
-    icon: Receipt,
-    href: "/factures",
-  },
+  // {
+  //   title: "Factures",
+  //   icon: Receipt,
+  //   href: "/factures",
+  // },
   {
     title: "Plans de Voyage",
     icon: Route,

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { Client, ApiResponse, Reservation } from "@shared/types";
 import { clientService } from "@/services/clientService";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,40 @@ export default function ClientDetail() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "confirmé":
+        return "bg-forest-100 text-forest-800 border-forest-200";
+      case "en_attente":
+        return "bg-sunset-100 text-sunset-800 border-sunset-200";
+      case "cancelled":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      case "terminé":
+        return "bg-ocean-100 text-ocean-800 border-ocean-200";
+      case "en_cours":
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "confirmé":
+        return "Confirmée";
+      case "en_attente":
+        return "En attente";
+      case "cancelled":
+        return "Annulée";
+      case "terminé":
+        return "Terminée";
+      case "en_cours":
+        return "En cours";
+      default:
+        return status;
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -55,7 +90,7 @@ export default function ClientDetail() {
 
   const fetchClientReservations = async (clientId: string) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/factures/client/${clientId}`);
+      const response = await fetch(`${API_BASE_URL}/factures/client/${clientId}`);
       const data = await response.json();
       if (data.success) {
         setReservations(data.data || []);
@@ -281,28 +316,8 @@ export default function ClientDetail() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        reservation.status === "confirmé"
-                          ? "default"
-                          : reservation.status === "en_attente"
-                            ? "secondary"
-                            : reservation.status === "en_cours"
-                              ? "secondary" 
-                              : reservation.status === "completed"
-                                ? "outline"
-                                : "destructive"
-                      }
-                    >
-                      {reservation.status === "confirmé"
-                        ? "Confirmé"
-                        : reservation.status === "en_attente"
-                          ? "En attente"
-                          : reservation.status === "en_cours"
-                            ? " En cours"
-                            : reservation.status === "completed"
-                              ? "Terminé"
-                              : reservation.status}
+                    <Badge className={getStatusColor(reservation.status)}>
+                      {getStatusText(reservation.status)}
                     </Badge>
                   
                   </div>

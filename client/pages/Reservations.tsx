@@ -112,7 +112,7 @@ export default function Reservations() {
         return "bg-sunset-100 text-sunset-800 border-sunset-200";
       case "cancelled":
         return "bg-destructive/10 text-destructive border-destructive/20";
-      case "completed":
+      case "terminé":
         return "bg-ocean-100 text-ocean-800 border-ocean-200";
       case "en_cours":
         return "bg-amber-100 text-amber-800 border-amber-200";
@@ -129,7 +129,7 @@ export default function Reservations() {
         return "En attente";
       case "cancelled":
         return "Annulée";
-      case "completed":
+      case "terminé":
         return "Terminée";
       default:
         return status;
