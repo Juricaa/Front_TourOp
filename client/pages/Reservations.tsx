@@ -137,22 +137,19 @@ export default function Reservations() {
   };
 
   const filteredReservations = reservations.filter((reservation) => {
-
     const statusMatch =
       statusFilter === "all" || 
       reservation.status === statusFilter;
 
     const searchMatch =
       reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.clientId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (reservation.clientId.destinations || []).some(dest =>
-        dest.toLowerCase().includes(searchQuery.toLowerCase())
-      ) ||
+      (typeof reservation.clientId === 'object' && reservation.clientId.name ? 
+        reservation.clientId.name.toLowerCase().includes(searchQuery.toLowerCase()) : false) ||
+      (typeof reservation.destination === 'string' && 
+        reservation.destination.toLowerCase().includes(searchQuery.toLowerCase())) ||
       reservation.totalPrice.toString().includes(searchQuery);
 
     return statusMatch && searchMatch;
-    // reservation.idFacture.toLowerCase().includes(searchQuery.toLowerCase())
-
   });
 
 
@@ -397,7 +394,9 @@ export default function Reservations() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReservations.map((reservation) => (
+                {filteredReservations
+                  .sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime())
+                  .map((reservation) => (
                   <TableRow key={reservation.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div>

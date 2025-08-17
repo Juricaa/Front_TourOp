@@ -82,14 +82,19 @@ export default function SecretaryDashboard() {
             ([name, count]) => ({ name, count })
           );
 
+          // Trier les réservations par date de création (plus récent en premier)
+          const sortedReservations = recentReservations.sort((a, b) => 
+            new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
+          );
+
           // Remplir les stats
           setStats({
-            totalClients: new Set(recentReservations.map((r) => r.clientId)).size,
-            totalReservations: recentReservations.length,
-            totalRevenue: recentReservations.reduce((sum, r) => sum + r.totalPrice, 0),
+            totalClients: new Set(sortedReservations.map((r) => r.clientId)).size,
+            totalReservations: sortedReservations.length,
+            totalRevenue: sortedReservations.reduce((sum, r) => sum + r.totalPrice, 0),
             monthlyRevenue: 0, // calcul spécifique si nécessaire
             popularDestinations,
-            recentReservations,
+            recentReservations: sortedReservations,
           });
         }
       } catch (error) {
@@ -256,9 +261,7 @@ export default function SecretaryDashboard() {
               >
                 <div>
                   <p className="font-medium">{reservation.clientName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {reservation.clientEmail}
-                  </p>
+                
                   <p className="text-sm text-muted-foreground">
                     Destinations : {reservation.clientDestinations}
                   </p>
