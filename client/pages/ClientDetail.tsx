@@ -55,10 +55,13 @@ export default function ClientDetail() {
 
   const fetchClientReservations = async (clientId: string) => {
     try {
-      const response = await fetch(`/api/reservations?clientId=${clientId}`);
+      const response = await fetch(`http://localhost:8081/api/factures/client/${clientId}`);
       const data = await response.json();
       if (data.success) {
         setReservations(data.data || []);
+        console.log("Client reservations:", data.data);
+      } else {
+        console.error("Error fetching client reservations:", data.error);
       }
     } catch (error) {
       console.error("Error fetching client reservations:", error);
@@ -209,7 +212,7 @@ export default function ClientDetail() {
       </div>
 
       {/* Destinations */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Destinations d'intérêt</CardTitle>
         </CardHeader>
@@ -232,7 +235,7 @@ export default function ClientDetail() {
             </p>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Notes */}
       {client.notes && (
@@ -268,28 +271,40 @@ export default function ClientDetail() {
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div>
-                    <div className="font-medium">#{reservation.id}</div>
+                    
+                  <div className="flex items-center text-sm text-gray-700">
+                            <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                                {reservation.destination},  {new Date(reservation.dateTravel).toLocaleDateString()}
+                              </div>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(reservation.dateTravel).toLocaleDateString()}
+                     
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
                       variant={
-                        reservation.status === "confirmed"
+                        reservation.status === "confirmé"
                           ? "default"
-                          : reservation.status === "pending"
+                          : reservation.status === "en_attente"
                             ? "secondary"
-                            : "destructive"
+                            : reservation.status === "en_cours"
+                              ? "secondary" 
+                              : reservation.status === "completed"
+                                ? "outline"
+                                : "destructive"
                       }
                     >
-                      {reservation.status}
+                      {reservation.status === "confirmé"
+                        ? "Confirmé"
+                        : reservation.status === "en_attente"
+                          ? "En attente"
+                          : reservation.status === "en_cours"
+                            ? " En cours"
+                            : reservation.status === "completed"
+                              ? "Terminé"
+                              : reservation.status}
                     </Badge>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/reservations/${reservation.id}`}>
-                        <Eye className="h-3 w-3" />
-                      </Link>
-                    </Button>
+                  
                   </div>
                 </div>
               ))}

@@ -18,8 +18,9 @@ import {
   Bell,
   AlertTriangle,
   Clock,
+ 
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { factureService } from "@/services/factureService";
 
@@ -48,6 +49,7 @@ interface DashboardStats {
 
 interface Notification {
   id: string;
+  clientId: string;
   type: 'warning' | 'info';
   title: string;
   message: string;
@@ -55,18 +57,23 @@ interface Notification {
   clientName: string;
   daysRemaining: number;
   dateReturn: Date;
+  dateTravel: Date;
+  date_created: Date;
+  status: string;
+  total: number;
 }
 
 export default function SecretaryDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await factureService.getFactures(); 
+        const response = await factureService.getFactures();
         const result = response;
 
         if (result.success) {
@@ -83,6 +90,10 @@ export default function SecretaryDashboard() {
             dateCreated: new Date(item.dateCreated),
             dateReturn: new Date(item.dateReturn),
             dateTravel: new Date(item.dateTravel),
+            
+            total: item.totalPrice,
+            date_created: item.dateCreated,
+            
           }));
 
           // Calculer les destinations populaires
@@ -98,7 +109,7 @@ export default function SecretaryDashboard() {
           );
 
           // Trier les réservations par date de création (plus récent en premier)
-          const sortedReservations = recentReservations.sort((a, b) => 
+          const sortedReservations = recentReservations.sort((a, b) =>
             new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
           );
 
@@ -123,8 +134,8 @@ export default function SecretaryDashboard() {
 
                 if (updateResponse.success) {
                   updatedReservations.push(reservation.id);
-              // Mettre à jour le statut localement
-              reservation.status = "payé";
+                  // Mettre à jour le statut localement
+                  reservation.status = "termine";
                 }
               } catch (error) {
                 console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
@@ -133,21 +144,27 @@ export default function SecretaryDashboard() {
 
             // Créer les notifications pour les réservations actives
             const daysRemaining = Math.ceil((dateReturn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            
+
             if (daysRemaining >= 0 && daysRemaining <= 7 && reservation.status !== "payé") {
               activeNotifications.push({
                 id: `notification-${reservation.id}`,
                 type: daysRemaining <= 3 ? 'warning' : 'info',
                 title: daysRemaining <= 1 ? 'Urgent: Fin de séjour' : 'Fin de séjour proche',
-                message: daysRemaining <= 0 
+                message: daysRemaining <= 0
                   ? `Le séjour de ${reservation.clientName} se termine aujourd'hui!`
                   : daysRemaining === 1
-                  ? `Le séjour de ${reservation.clientName} se termine demain!`
-                  : `Le séjour de ${reservation.clientName} se termine dans ${daysRemaining} jours.`,
+                    ? `Le séjour de ${reservation.clientName} se termine demain!`
+                    : `Le séjour de ${reservation.clientName} se termine dans ${daysRemaining} jours.`,
                 reservationId: reservation.id,
                 clientName: reservation.clientName,
+                clientId: reservation.clientId,
                 daysRemaining,
                 dateReturn: reservation.dateReturn,
+                dateTravel: reservation.dateTravel,
+                status: reservation.status,
+                total: reservation.totalPrice,
+                date_created: reservation.dateCreated,
+                
               });
             }
           }
@@ -224,15 +241,14 @@ export default function SecretaryDashboard() {
             <h2 className="text-lg font-semibold">Alertes Réservations</h2>
             <Badge variant="secondary">{notifications.length}</Badge>
           </div>
-          
+
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-4 rounded-lg border-l-4 ${
-                notification.type === 'warning'
+              className={`p-4 rounded-lg border-l-4 ${notification.type === 'warning'
                   ? 'bg-orange-50 border-orange-400 text-orange-800'
                   : 'bg-blue-50 border-blue-400 text-blue-800'
-              }`}
+                }`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-0.5">
@@ -242,7 +258,7 @@ export default function SecretaryDashboard() {
                     <Clock className="h-5 w-5 text-blue-600" />
                   )}
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{notification.title}</h3>
@@ -250,32 +266,41 @@ export default function SecretaryDashboard() {
                       variant={notification.type === 'warning' ? 'destructive' : 'secondary'}
                       className="text-xs"
                     >
-                      {notification.daysRemaining <= 0 ? 'Aujourd\'hui' : 
-                       notification.daysRemaining === 1 ? 'Demain' : 
-                       `Dans ${notification.daysRemaining} jours`}
+                      {notification.daysRemaining <= 0 ? 'Aujourd\'hui' :
+                        notification.daysRemaining === 1 ? 'Demain' :
+                          `Dans ${notification.daysRemaining} jours`}
                     </Badge>
                   </div>
-                  
+
                   <p className="text-sm mt-1">{notification.message}</p>
-                  
+
                   <div className="flex items-center gap-2 mt-3">
                     <Button
                       size="sm"
                       variant="outline"
-                      asChild
+                      onClick={() => {
+                        navigate(`/reservations/${notification.clientId}`, {
+                          state: {
+                            date_debut: new Date(notification.dateTravel).toISOString().split('T')[0],
+                            date_fin: new Date(notification.dateReturn).toISOString().split('T')[0],
+                            date_created: new Date(notification.date_created).toISOString().split('T')[0],
+                            factureId: notification.id,
+                            total : notification.total,
+                            status: notification.status,
+                          },
+                        });
+                      }}
                     >
-                      <Link to={`/reservations/${notification.reservationId}`}>
-                        Voir la réservation
-                      </Link>
+                      Voir la réservation
                     </Button>
-                    
+
                     <Button
                       size="sm"
                       variant="ghost"
                       className="text-xs"
                       asChild
                     >
-                      <Link to={`/clients`}>
+                      <Link to={`/clients/${notification.clientId}`}>
                         Contacter {notification.clientName}
                       </Link>
                     </Button>
@@ -404,7 +429,7 @@ export default function SecretaryDashboard() {
               >
                 <div>
                   <p className="font-medium">{reservation.clientName}</p>
-                
+
                   <p className="text-sm text-muted-foreground">
                     Destinations : {reservation.clientDestinations}
                   </p>
