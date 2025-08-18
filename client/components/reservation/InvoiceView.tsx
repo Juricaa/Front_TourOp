@@ -49,7 +49,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  paid: "bg-green-100 text-green-800 border-green-200",
+  payé: "bg-green-100 text-green-800 border-green-200",
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
   overdue: "bg-red-100 text-red-800 border-red-200",
 };
@@ -197,9 +197,9 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
               <div class="invoice-title">Facture ${invoice.number}</div>
               <div class="invoice-meta">
                 Date : ${formatDate(invoice.date_created)}<br/>
-                Statut: <span class="status-badge" style="background-color: ${invoice.status === 'payé' ? '#dcfce7' : invoice.status === 'en_attente' ? '#fef9c3' : '#fee2e2'}; 
-                                  color: ${invoice.status === 'payé' ? '#166534' : invoice.status === 'en_attente' ? '#854d0e' : '#991b1b'};
-                                  border: 1px solid ${invoice.status === 'payé' ? '#bbf7d0' : invoice.status === 'en_attente' ? '#fef08a' : '#fecaca'};">
+                Statut: <span class="status-badge" style="background-color: ${invoice.paymentStatus === 'payé' ? '#dcfce7' : invoice.paymentStatus === 'en_attente' ? '#fef9c3' : '#fee2e2'}; 
+                                  color: ${invoice.paymentStatus === 'payé' ? '#166534' : invoice.paymentStatus === 'en_attente' ? '#854d0e' : '#991b1b'};
+                                  border: 1px solid ${invoice.paymentStatus === 'payé' ? '#bbf7d0' : invoice.paymentStatus === 'en_attente' ? '#fef08a' : '#fecaca'};">
                         ${statusLabels[invoice.paymentStatus] || invoice.paymentStatus}
                       </span>
               </div>

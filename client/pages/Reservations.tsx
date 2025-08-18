@@ -523,6 +523,7 @@ export default function Reservations() {
                                   factureId: reservation.idFacture,
                                   total: reservation.totalPrice,
                                   status: reservation.status,
+                                  paymentStatus : reservation.paymentStatus
                                 },
                               });
                             }}

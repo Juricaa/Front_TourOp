@@ -204,7 +204,7 @@ export interface Reservation {
   dateReturn?: Date;
   notes?: string;
   destination: string;
-
+  paymentStatus : string;
   // Associated services
   hebergements?: {
     id: string;
@@ -253,6 +253,8 @@ export interface SingleReservation {
   dateTravel: Date;
   dateReturn?: Date;
   notes?: string;
+  paymentStatus : string;
+  destination: string;
 
   hebergements: {
     id: string;

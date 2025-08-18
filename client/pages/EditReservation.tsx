@@ -112,6 +112,8 @@ export default function EditReservationComplete() {
     dateCreated: new Date(""),
   });
 
+  const isTerminated = formData.status === "terminé";
+
   useEffect(() => {
     
     if (id) {
@@ -380,8 +382,8 @@ export default function EditReservationComplete() {
         toast({
           title: "Réservation modifiée",
           description: "Les modifications ont été sauvegardées avec succès.",
-        });fetchReservation(id)
-        // navigate(`/reservations/${id}`);
+        });
+        navigate("/reservations");
       } else {
         setError(response.error || "Erreur lors de la sauvegarde");
         toast({
@@ -499,6 +501,16 @@ export default function EditReservationComplete() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {isTerminated && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-blue-600" />
+                        <p className="text-sm text-blue-800">
+                          Cette réservation est terminée. Les informations ne peuvent plus être modifiées.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="status">Statut de la réservation</Label>
@@ -507,6 +519,7 @@ export default function EditReservationComplete() {
                         onValueChange={(value) =>
                           setFormData((prev) => ({ ...prev, status: value }))
                         }
+                        disabled={isTerminated}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -521,7 +534,6 @@ export default function EditReservationComplete() {
                       </Select>
                     </div>
 
-
                     <div className="space-y-2">
                       <Label htmlFor="paymentStatus">Statut de paiement</Label>
                       <Select
@@ -529,6 +541,7 @@ export default function EditReservationComplete() {
                         onValueChange={(value) =>
                           setFormData((prev) => ({ ...prev, paymentStatus: value }))
                         }
+                        disabled={isTerminated}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -542,7 +555,6 @@ export default function EditReservationComplete() {
                         </SelectContent>
                       </Select>
                     </div>
-
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -555,6 +567,7 @@ export default function EditReservationComplete() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, dateTravel: e.target.value }))
                         }
+                        disabled={isTerminated}
                       />
                     </div>
 
@@ -567,6 +580,7 @@ export default function EditReservationComplete() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, dateReturn: e.target.value }))
                         }
+                        disabled={isTerminated}
                       />
                     </div>
                   </div>
@@ -585,6 +599,7 @@ export default function EditReservationComplete() {
                             participants: parseInt(e.target.value) || 1,
                           }))
                         }
+                        disabled={isTerminated}
                       />
                     </div>
 
@@ -613,11 +628,10 @@ export default function EditReservationComplete() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, destination: e.target.value }))
                         }
+                        disabled={isTerminated}
                       />
                     </div>
                   </div>
-
-            
 
                   <div className="space-y-2">
                     <Label htmlFor="notes">Notes</Label>
@@ -629,6 +643,7 @@ export default function EditReservationComplete() {
                       }
                       placeholder="Notes additionnelles sur la réservation..."
                       rows={4}
+                      disabled={isTerminated}
                     />
                   </div>
                 </CardContent>
@@ -645,19 +660,21 @@ export default function EditReservationComplete() {
                   </CardContent>
                 </Card>
               ) : (
-                <FullReservationEditor
-                  reservation={reservation}
-                  formData={formData}
-                  setFormData={setFormData}
-                  clients={clients}
-                  vols={vols}
-                  hebergements={hebergements}
-                  voitures={voitures}
-                  activites={activites}
-                  selectedServices={selectedServices}
-                  onServiceToggle={handleServiceToggle}
-                  onCalculateTotal={calculateTotalFromServices}
-                />
+                <div className={isTerminated ? "opacity-50 pointer-events-none" : ""}>
+                  <FullReservationEditor
+                    reservation={reservation}
+                    formData={formData}
+                    setFormData={setFormData}
+                    clients={clients}
+                    vols={vols}
+                    hebergements={hebergements}
+                    voitures={voitures}
+                    activites={activites}
+                    selectedServices={selectedServices}
+                    onServiceToggle={handleServiceToggle}
+                    onCalculateTotal={calculateTotalFromServices}
+                  />
+                </div>
               )}
             </TabsContent>
 
@@ -665,7 +682,7 @@ export default function EditReservationComplete() {
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || isTerminated}
                 className="flex-1"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -679,13 +696,14 @@ export default function EditReservationComplete() {
                     fetchReservation(id);
                   }
                 }}
-                disabled={loading}
+                disabled={loading || isTerminated}
               >
                 Actualiser
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate(`/reservations/${id}`)}
+                disabled={isTerminated}
               >
                 Annuler
               </Button>
@@ -773,6 +791,7 @@ export default function EditReservationComplete() {
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, status: "confirmed" }))
                 }
+                disabled={isTerminated}
               >
                 Confirmer la réservation
               </Button>
@@ -783,6 +802,7 @@ export default function EditReservationComplete() {
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, paymentStatus: "paid" }))
                 }
+                disabled={isTerminated}
               >
                 Marquer comme payé
               </Button>
@@ -793,6 +813,7 @@ export default function EditReservationComplete() {
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, status: "completed" }))
                 }
+                disabled={isTerminated}
               >
                 Marquer comme terminé
               </Button>
@@ -803,6 +824,7 @@ export default function EditReservationComplete() {
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, status: "cancelled" }))
                 }
+                disabled={isTerminated}
               >
                 Annuler la réservation
               </Button>

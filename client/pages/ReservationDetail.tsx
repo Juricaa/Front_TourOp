@@ -26,7 +26,7 @@ export default function ReservationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { date_debut, date_fin, date_created, factureId, total, status } = location.state || {};
+  const { date_debut, date_fin, date_created, factureId, total, status, paymentStatus } = location.state || {};
   const [reservation, setReservation] = useState<SingleReservation | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,8 +93,9 @@ export default function ReservationDetail() {
   useEffect(() => {
     const loadInitialData = async () => {
       if (id) {
-       
+        
         await fetchReservation(id);
+        
       }
 
       setIsLoadingRates(true);
@@ -119,6 +120,7 @@ export default function ReservationDetail() {
           fetchClient(reservationId);
         }
         console.log("donnée vierge:", data.data)
+        
         const aggregatedReservation = transformBackendDataToReservation(data.data, reservationId );
         setReservation(aggregatedReservation);
         console.log("data traité:", aggregatedReservation)
@@ -160,6 +162,7 @@ export default function ReservationDetail() {
       id: "AGG_" + Date.now().toString(),
       clientId: id,
       status: "",
+      paymentStatus :"",
       totalPrice: 0,
       currency: "",
       dateCreated: new Date(),
@@ -260,7 +263,7 @@ export default function ReservationDetail() {
         return "bg-sunset-100 text-sunset-800 border-sunset-200";
       case "cancelled":
         return "bg-destructive/10 text-destructive border-destructive/20";
-      case "completed":
+      case "terminé":
         return "bg-ocean-100 text-ocean-800 border-ocean-200";
       default:
         return "bg-muted text-muted-foreground";
@@ -275,7 +278,7 @@ export default function ReservationDetail() {
         return "En attente";
       case "cancelled":
         return "Annulée";
-      case "completed":
+      case "terminé":
         return "Terminée";
       default:
         return status;
@@ -290,7 +293,7 @@ export default function ReservationDetail() {
         return Clock;
       case "cancelled":
         return XCircle;
-      case "completed":
+      case "terminé":
         return CheckCircle;
       default:
         return Clock;
@@ -346,11 +349,33 @@ export default function ReservationDetail() {
     }, 100);
   };
 
+  const getfacture = async (factureId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/factures/${factureId}/`);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        const factureData = data.data;
+        console.log (factureData);
+         
+        return factureData;
+      }
+      
+      throw new Error('Failed to fetch invoice');
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+      toast.error("Erreur lors de la récupération de la facture");
+      return null;
+    }
+  };
+
+  
+
   const getInvoiceData = (): Invoice | null => {
     if (!reservation || !client) return null;
-
+    
     const invoiceNumber = `${factureId.slice(0, 8).toUpperCase()}-${new Date().getFullYear()}`;
-
+    getfacture(factureId);
     const convertPrice = (price: number) => price * exchangeRates[selectedCurrency];
 
     const items = [
@@ -402,9 +427,11 @@ export default function ReservationDetail() {
       total,
       notes: reservation.notes || "Merci pour votre réservation avec TourOp Madagascar",
       currency: selectedCurrency,
-      travelStartDate: date_debut,  // Ajouté
+      travelStartDate: date_debut,
       travelEndDate: date_fin,
-      date_created: date_created
+      date_created: date_created,
+      status: reservation.status || status,
+      paymentStatus : reservation.paymentStatus || paymentStatus,
     };
   };
 
