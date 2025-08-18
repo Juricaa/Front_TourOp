@@ -188,7 +188,7 @@ export default function SecretaryDashboard() {
 
             if (daysRemaining >= 0 && daysRemaining <= 7 && reservation.status !== "payé") {
               activeNotifications.push({
-                id: `notification-${reservation.id}`,
+                id: reservation.id,
                 type: daysRemaining <= 3 ? 'warning' : 'info',
                 title: daysRemaining <= 1 ? 'Urgent: Fin de séjour' : 'Fin de séjour proche',
                 message: daysRemaining <= 0
@@ -319,6 +319,7 @@ export default function SecretaryDashboard() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
+                        console.log(notification)
                         navigate(`/reservations/${notification.clientId}`, {
                           state: {
                             date_debut: new Date(notification.dateTravel).toISOString().split('T')[0],

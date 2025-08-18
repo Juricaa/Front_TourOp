@@ -350,6 +350,7 @@ export default function ReservationDetail() {
   };
 
   const getfacture = async (factureId: string) => {
+    console.log("inoa ity",factureId)
     try {
       const response = await fetch(`${API_BASE_URL}/factures/${factureId}/`);
       const data = await response.json();

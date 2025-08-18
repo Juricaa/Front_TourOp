@@ -557,7 +557,7 @@ export default function EditReservationComplete() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="dateTravel">Date de départ</Label>
                       <Input
@@ -583,9 +583,9 @@ export default function EditReservationComplete() {
                         disabled={isTerminated}
                       />
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="participants">Nombre de participants</Label>
                       <Input
@@ -616,7 +616,7 @@ export default function EditReservationComplete() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -702,7 +702,7 @@ export default function EditReservationComplete() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => navigate(`/reservations/${id}`)}
+                onClick={() => navigate(`/reservations/`)}
                 disabled={isTerminated}
               >
                 Annuler
@@ -789,7 +789,7 @@ export default function EditReservationComplete() {
                 size="sm"
                 className="w-full justify-start"
                 onClick={() =>
-                  setFormData((prev) => ({ ...prev, status: "confirmed" }))
+                  setFormData((prev) => ({ ...prev, status: "confirmé" }))
                 }
                 disabled={isTerminated}
               >
@@ -800,7 +800,7 @@ export default function EditReservationComplete() {
                 size="sm"
                 className="w-full justify-start"
                 onClick={() =>
-                  setFormData((prev) => ({ ...prev, paymentStatus: "paid" }))
+                  setFormData((prev) => ({ ...prev, paymentStatus: "payé" }))
                 }
                 disabled={isTerminated}
               >
@@ -811,7 +811,7 @@ export default function EditReservationComplete() {
                 size="sm"
                 className="w-full justify-start"
                 onClick={() =>
-                  setFormData((prev) => ({ ...prev, status: "completed" }))
+                  setFormData((prev) => ({ ...prev, status: "terminé" }))
                 }
                 disabled={isTerminated}
               >
