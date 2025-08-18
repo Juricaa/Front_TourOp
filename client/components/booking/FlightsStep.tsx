@@ -482,6 +482,7 @@ export default function FlightsStep() {
             {state.flights.map((flight) => {
               const vol = availableFlights.find((v) =>
                 flight.id.startsWith(v.idVol),
+              
               );
 
               if (!vol) return (

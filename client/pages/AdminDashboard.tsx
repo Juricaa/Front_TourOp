@@ -505,7 +505,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Top Destinations */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
@@ -568,7 +568,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Quick Insights */}
-        <Card className="border-0 shadow-lg">
+        {/* <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PieChart className="w-5 h-5 text-blue-500" />
@@ -625,7 +625,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Action Buttons for Admin */}
@@ -674,8 +674,7 @@ export default function AdminDashboard() {
                 </p>
                 <p className="text-sm text-blue-700">
                   Vous avez accès en lecture seule aux statistiques et données
-                  de performance. Pour effectuer des modifications, contactez un
-                  utilisateur avec des droits de secrétaire.
+                  de performance.
                 </p>
               </div>
             </div>

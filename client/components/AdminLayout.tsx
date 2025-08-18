@@ -129,7 +129,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </SidebarGroup>
 
             {/* Quick Stats in Sidebar */}
-            <SidebarGroup className="mt-4">
+            {/* <SidebarGroup className="mt-4">
               <SidebarGroupLabel className="text-slate-600 font-semibold">
                 Aperçu Rapide
               </SidebarGroupLabel>
@@ -166,7 +166,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   </div>
                 </div>
               </SidebarGroupContent>
-            </SidebarGroup>
+            </SidebarGroup> */}
           </SidebarContent>
 
           <SidebarFooter className="border-t border-slate-200 bg-white/50">

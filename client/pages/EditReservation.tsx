@@ -497,6 +497,7 @@ export default function EditReservationComplete() {
                     dateTravel: formData.dateTravel,
                     dateReturn: formData.dateReturn,
                   },
+                  reservation: {vols},
                   flights: selectedServices.flights.map(flightId => ({ id: flightId })),
                   accommodations: selectedServices.accommodations.map(accomodationId => ({ id: accomodationId })),
                   vehicles: selectedServices.vehicles.map(vehicleId => ({ id: vehicleId })),
@@ -512,7 +513,7 @@ export default function EditReservationComplete() {
                 localStorage.setItem("editReservation", JSON.stringify(editData));
               }
               // Redirect to NewReservation in edit mode
-              navigate('/reservations/new?mode=edit');
+              // navigate('/reservations/new?mode=edit');
             } else {
               setActiveTab(value);
             }
