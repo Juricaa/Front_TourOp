@@ -39,7 +39,7 @@ import { activiteService } from "@/services/activiteService";
 import FullReservationEditor from "@/components/FullReservationEditor";
 import type { Reservation, Client, Vol, Hebergement, Voiture, Activite } from "@shared/types";
 import { API_BASE_URL } from "@/services/apiConfig";
-import {  useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { factureService } from "@/services/factureService";
 
 const statusOptions = [
@@ -76,7 +76,7 @@ export default function EditReservationComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [reservation, setReservation] = useState<Reservation | null>(null);
- 
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [servicesLoading, setServicesLoading] = useState(true);
@@ -84,7 +84,8 @@ export default function EditReservationComplete() {
   const [activeTab, setActiveTab] = useState("quick");
   const location = useLocation();
   const reservationData = location.state?.reservation;
-  
+  const [availableFlights, setAvailableFlights] = useState<Vol[]>([]);
+  const [fullFlight, setFullFlight] = useState<Flight | null>(null);
   // Data for full editor
   const [clients, setClients] = useState<Client[]>([]);
   const [vols, setVols] = useState<Vol[]>([]);
@@ -97,7 +98,7 @@ export default function EditReservationComplete() {
     vehicles: [] as string[],
     activities: [] as string[],
   });
- 
+
   const [formData, setFormData] = useState({
     status: "",
     notes: "",
@@ -108,19 +109,19 @@ export default function EditReservationComplete() {
     dateReturn: "",
     participants: 1,
     clientId: "",
-    destination:"",
+    destination: "",
     dateCreated: new Date(""),
   });
 
   const isTerminated = formData.status === "terminé";
 
   useEffect(() => {
-    
+
     if (id) {
       console.log("Received reservation:", reservationData);
       fetchReservation(id);
       fetchServiceData();
-    
+
     }
 
     const handleKeyDown = (event) => {
@@ -135,14 +136,14 @@ export default function EditReservationComplete() {
   }, [id, navigate]);
 
   const fetchReservation = async (reservationId: string) => {
-    try {  
-      
-      const response = await factureService.getFacture(reservationId );
+    try {
+
+      const response = await factureService.getFacture(reservationId);
       console.log(response)
       if (response.success && response.data) {
         setReservation(reservationData);
-        fetchClient (reservationData.clientId);
-        
+        fetchClient(reservationData.clientId);
+
         setFormData({
           status: response.data.status,
           notes: response.data.notes || "",
@@ -157,7 +158,7 @@ export default function EditReservationComplete() {
           destination: response.data.destination
 
         });
-        
+
         // Initialize selected services
         setSelectedServices({
           flights: (reservationData.vols || []).map((v: any) => v.id || v),
@@ -182,7 +183,7 @@ export default function EditReservationComplete() {
       const data = await response.json();
       if (data.success) {
         setClients(data.data);
-        console.log (data.data)
+        console.log(data.data)
       }
     } catch (error) {
       console.error("Error fetching client:", error);
@@ -219,6 +220,8 @@ export default function EditReservationComplete() {
           const volsData = await volsRes.json();
           if (volsData.success && Array.isArray(volsData.data)) {
             setVols(volsData.data);
+            setAvailableFlights(volsData.data);
+            setFullFlight(volsData.data)
           }
         } catch (err) {
           console.error('Error parsing vols data:', err);
@@ -357,7 +360,7 @@ export default function EditReservationComplete() {
     setSaving(true);
     try {
       const updateData = {
-        clientId : formData.clientId.idClient,
+        clientId: formData.clientId.idClient,
         status: formData.status,
         paymentStatus: formData.paymentStatus,
         destination: formData.destination,
@@ -377,7 +380,7 @@ export default function EditReservationComplete() {
       };
 
       const response = await factureService.updateFacture(id, updateData);
-      
+
       if (response.success) {
         toast({
           title: "Réservation modifiée",
@@ -479,7 +482,49 @@ export default function EditReservationComplete() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form */}
         <div className="lg:col-span-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => {
+            if (value === 'full') {
+              // Store reservation data in localStorage for edit mode
+              if (reservation) {
+                const clientData = Array.isArray(clients) ? clients.find(c => c.idClient === reservation.clientId) : null;
+                const editData = {
+                  reservationId: reservation.id,
+                  client: {
+                    id: reservation.clientId as string,
+                    name: clientData?.name || '',
+                    nbpersonnes: formData.participants,
+                    destination: formData.destination,
+                    dateTravel: formData.dateTravel,
+                    dateReturn: formData.dateReturn,
+                  },
+                  flights: selectedServices.flights.map(flightId => {
+                    const flight = state.flights.find(f => f.id === flightId);
+                    return {
+                      id: flightId,
+                      departureDate: flight?.departureDate || null,
+                      returnDate: flight?.returnDate || null,
+                      passengers: flight?.passengers || 1,
+                    };
+                  }),
+                  accommodations: selectedServices.accommodations.map(accomodationId => ({ id: accomodationId })),
+                  vehicles: selectedServices.vehicles.map(vehicleId => ({ id: vehicleId })),
+                  activities: selectedServices.activities.map(activiteId => ({ id: activiteId })),
+                  totalPrice: typeof formData.totalPrice === 'string' ? parseInt(formData.totalPrice) || 0 : formData.totalPrice,
+                  deposit: formData.deposit,
+                  status: formData.status,
+                  paymentStatus: formData.paymentStatus,
+                  destination: formData.destination,
+                  notes: formData.notes,
+                };
+                console.log(editData)
+                localStorage.setItem("editReservation", JSON.stringify(editData));
+              }
+              // Redirect to NewReservation in edit mode
+              navigate('/reservations/new?mode=edit');
+            } else {
+              setActiveTab(value);
+            }
+          }} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="quick" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
@@ -619,7 +664,7 @@ export default function EditReservationComplete() {
                   </div> */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                    <div className="space-y-2">
                       <Label htmlFor="participants">Destinations</Label>
                       <Input
                         id="participants"

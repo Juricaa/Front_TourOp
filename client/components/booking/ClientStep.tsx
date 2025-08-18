@@ -16,6 +16,7 @@ import { Search, Plus, Users, Mail, Phone, MapPin } from "lucide-react";
 import { useBooking } from "@/contexts/BookingContext";
 import type { Client } from "@shared/types";
 import type { BookingClient } from "@shared/booking";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 export default function ClientStep() {
   const { state, setClient } = useBooking();
@@ -43,7 +44,7 @@ export default function ClientStep() {
 
   const fetchClients = async () => {
     try {
-      const response = await fetch("http://localhost:8081/api/clients");
+      const response = await fetch(`${API_BASE_URL}/clients`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

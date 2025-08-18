@@ -35,6 +35,7 @@ import { useActiviteBooking } from "@/hooks/useActiviteBooking"; // Import the n
 import type { Activite } from "@shared/types";
 import type { BookingActivite } from "@shared/booking"; // Use the correct type name
 import { reservationService } from "@/services/reservationService";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 const categories = [
   "Tous",
@@ -100,7 +101,7 @@ export default function ActivitiesStep() {
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch("http://localhost:8081/api/activites/");
+      const response = await fetch(`${API_BASE_URL}/activites`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

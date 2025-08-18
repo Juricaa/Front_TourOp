@@ -373,7 +373,7 @@ export default function ReservationDetail() {
   
 
   const getInvoiceData = (): Invoice | null => {
-    if (!reservation || !client) return null;
+    if (!reservation || !client || !factureId) return null;
     
     const invoiceNumber = `${factureId.slice(0, 8).toUpperCase()}-${new Date().getFullYear()}`;
     getfacture(factureId);

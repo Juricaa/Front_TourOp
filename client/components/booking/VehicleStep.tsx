@@ -36,6 +36,7 @@ import type { Voiture } from "@shared/types";
 import type { BookingVehicle } from "@shared/booking";
 import { reservationService } from "@/services/reservationService";
 import { validateVehicleDatesAgainstTravel } from "@/lib/enhancedDateValidation";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 const featureIcons: Record<string, any> = {
   climatisation: Settings,
@@ -122,7 +123,7 @@ export default function VehicleStep() {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch("http://localhost:8081/api/voitures");
+      const response = await fetch(`${API_BASE_URL}/voitures`);
       if (!response.ok) {
         throw new Error(`Erreur HTTP ! statut: ${response.status}`);
       }
@@ -535,7 +536,7 @@ export default function VehicleStep() {
           <div className="space-y-3">
             {state.vehicles.map((vehicle) => {
               const voiture = availableVehicles.find((v) =>
-                vehicle.id === v.idVoiture || vehicle.id.startsWith(v.idVoiture)
+              v && v.idVoiture && vehicle.id && vehicle.id.startsWith(v.idVoiture)
               );
 
               if (!voiture) return (

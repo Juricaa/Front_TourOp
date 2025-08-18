@@ -44,6 +44,7 @@ import { useFlightBooking } from "@/hooks/useFlightBooking";
 import { reservationService } from "@/services/reservationService";
 import { validateFlightDatesAgainstTravel, isDateWithinTravelPeriod, getDateValidationMessage } from "@/lib/enhancedDateValidation";
 import { Calendar } from "../ui/calendar";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 const serviceIcons: Record<string, any> = {
   "repas": Star,
@@ -147,7 +148,7 @@ export default function FlightsStep() {
 
   const fetchFlights = async () => {
     try {
-      const response = await fetch("http://localhost:8081/api/vols");
+      const response = await fetch(`${API_BASE_URL}/vols`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

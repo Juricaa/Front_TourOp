@@ -43,6 +43,7 @@ import type { Hebergement, Reservation } from "@shared/types";
 import type { BookingAccommodation } from "@shared/booking";
 import { useAccommodationBooking } from "@/hooks/useAccommodationBooking"; // Importez le nouveau hook
 import { validateAccommodationDatesAgainstFlight } from "@/lib/enhancedDateValidation";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 // --- Constants and Utility Functions (restent en dehors) ---
 
@@ -164,7 +165,7 @@ export default function AccommodationStep() {
   useEffect(() => {
     const fetchAccommodations = async () => {
       try {
-        const response = await fetch("http://localhost:8081/api/hebergements/");
+        const response = await fetch(`${API_BASE_URL}/hebergements`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
