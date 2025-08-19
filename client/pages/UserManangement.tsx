@@ -318,7 +318,7 @@ export default function UserManagement() {
                 <TableHead>Statut</TableHead>
                 <TableHead>Utilisateur</TableHead>
                 <TableHead>Rôle</TableHead>
-                <TableHead>Permissions</TableHead>
+             
                 <TableHead>Dernière Connexion</TableHead>
                 <TableHead>Actions Rapides</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
@@ -355,7 +355,7 @@ export default function UserManagement() {
                     {getRoleBadge(user.role)}
                   </TableCell>
                   
-                  <TableCell>
+                  {/* <TableCell>
                     <div className="flex gap-1">
                       {user.is_staff && (
                         <Badge variant="outline" className="text-xs">
@@ -370,7 +370,7 @@ export default function UserManagement() {
                         </Badge>
                       )}
                     </div>
-                  </TableCell>
+                  </TableCell> */}
                   
                   <TableCell>
                     {user.last_login ? (
@@ -529,7 +529,7 @@ export default function UserManagement() {
                 />
               </div>
               
-              <div className="grid grid-cols-4 items-center gap-4">
+              {/* <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="staff" className="text-right">
                   Staff
                 </Label>
@@ -540,7 +540,7 @@ export default function UserManagement() {
                     setEditingUser({ ...editingUser, is_staff: checked })
                   }
                 />
-              </div>
+              </div> */}
             </div>
           )}
           
