@@ -826,6 +826,7 @@ export default function EditReservationComplete() {
                 variant="outline"
                 size="sm"
                 className="w-full justify-start"
+                value={formData.status}
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, status: "confirmé" }))
                 }
@@ -837,6 +838,7 @@ export default function EditReservationComplete() {
                 variant="outline"
                 size="sm"
                 className="w-full justify-start"
+                value={formData.paymentStatus}
                 onClick={() =>
                   setFormData((prev) => ({ ...prev, paymentStatus: "payé" }))
                 }
@@ -855,7 +857,7 @@ export default function EditReservationComplete() {
               >
                 Marquer comme terminé
               </Button>
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="w-full justify-start text-destructive"
@@ -865,7 +867,7 @@ export default function EditReservationComplete() {
                 disabled={isTerminated}
               >
                 Annuler la réservation
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
         </div>
