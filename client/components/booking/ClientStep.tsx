@@ -445,35 +445,16 @@ export default function ClientStep() {
 
             <div className="space-y-2">
               <Label htmlFor="nationality">Nationalité *</Label>
-              <Select
+              <Input
                 value={clientForm.nationality}
-                onValueChange={(value) =>
-                  handleInputChange("nationality", value)
+                onChange={(e) =>
+                  handleInputChange("nationality", e.target.value)
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner la nationalité" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "France",
-                    "Allemagne",
-                    "États-Unis",
-                    "Royaume-Uni",
-                    "Italie",
-                    "Espagne",
-                    "Suisse",
-                    "Canada",
-                    "Australie",
-                    "Madagascar",
-                    "Autre",
-                  ].map((nationality) => (
-                    <SelectItem key={nationality} value={nationality}>
-                      {nationality}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                required
+              />
+               
+               
+              
             </div>
 
             <div className="space-y-2 md:col-span-2">
