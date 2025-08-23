@@ -162,6 +162,7 @@ export default function ClientStep() {
           persons: response.data.persons || clientForm.persons,
         };
         setClient(bookingClient);
+        setShowNewClientForm(false); // Cacher le formulaire après création réussie
         
         setTimeout(() => {
           setSuccess(false);
