@@ -500,7 +500,7 @@ export default function PlansVoyageCrud() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Plan</TableHead>
+                <TableHead>Plangg</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Destination</TableHead>
                 <TableHead>Dates</TableHead>

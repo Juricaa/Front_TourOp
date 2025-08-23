@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -55,8 +56,6 @@ export function FactureTable() {
         fetchInvoices();
 
     }, []);
-
-
     const fetchInvoices = async () => {
         try {
             const response = await factureService.getFactures();
@@ -71,6 +70,52 @@ export function FactureTable() {
             setLoading(false);
         }
     };
+    // Fonction pour vérifier si une date est aujourd'hui
+    const isToday = (date: Date) => {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
+    };
+
+    // Fonction pour mettre à jour automatiquement le statut des factures avec date de départ aujourd'hui
+    const updateStatusForTodayDepartures = async () => {
+        const todayInvoices = invoices.filter(invoice => 
+            invoice.status === 'confirmé' && 
+            isToday(new Date(invoice.dateTravel))
+        );
+
+        for (const invoice of todayInvoices) {
+            try {
+                const updatedData = {
+                    clientId: invoice.clientId,
+                    status: "terminé" as "terminé",
+                };
+        
+                await factureService.updateFacture(invoice.idFacture, updatedData);
+                toast({
+                    title: "Mise à jour automatique",
+                    description: `Statut mis à jour pour la facture ${invoice.idFacture} (départ aujourd'hui)`,
+                });
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour automatique:", error);
+                toast({
+                    title: "Erreur",
+                    description: `Impossible de mettre à jour automatiquement la facture ${invoice.idFacture}`,
+                    variant: "destructive",
+                });
+            }
+        }}
+
+        // Recharger les factures si des mises à jour ont été effectuées
+
+    // Vérifier les départs aujourd'hui après le chargement des factures
+    useEffect(() => {
+        if (invoices.length > 0 && !loading) {
+            updateStatusForTodayDepartures();
+        }
+    }, [invoices, loading]);
+
+
+   
 
     // 🎯 Statistiques
     const stats = useMemo(() => {

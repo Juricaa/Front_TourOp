@@ -160,7 +160,28 @@ export default function SecretaryDashboard() {
           for (const reservation of sortedReservations) {
             const dateReturn = new Date(reservation.dateReturn);
             dateReturn.setHours(0, 0, 0, 0);
+            const dateDepart = new Date(reservation.dateTravel);
+            dateDepart.setHours(0, 0, 0, 0);
 
+            if (dateDepart <= today && reservation.status == "confirmé") {
+              try {
+                // Mettre à jour le statut via l'API
+                const updateResponse = await factureService.updateFacture(reservation.id, {
+                 
+                  status : "en_cours",
+                  clientId: reservation.clientId
+                });
+
+                if (updateResponse.success) {
+                  updatedReservations.push(reservation.id);
+                  // Mettre à jour le statut localement
+                  reservation.status = "en_cours";
+
+                }
+              } catch (error) {
+                console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
+              }
+            }
            
             // Si la date de retour est passée ou égale à aujourd'hui et que le statut n'est pas "payé"
             if (dateReturn <= today && reservation.status !== "terminé") {
