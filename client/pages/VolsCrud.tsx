@@ -121,9 +121,7 @@ export default function VolsCrud() {
       const response = await volService.getVols();
       if (response.success) {
         const vols : Vol[] = response.data.map(normalizeVol);
-        console.log("Fetched vols:", vols);
-        // setVols(response.data);
-        return vols
+      return vols
       }
     } catch (error) {
       console.error("Error fetching vols:", error);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   TrendingUp,
   Users,
@@ -23,6 +24,11 @@ import {
   Package,
   ShoppingCart,
   TrendingDown,
+  Calendar,
+  DollarSign,
+  BarChart,
+  LineChart,
+  Filter,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { DashboardStats, Reservation } from "@shared/types";
@@ -38,6 +44,8 @@ import { activiteService } from "@/services/activiteService";
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState<'day' | 'week' | 'month' | 'year'>('month');
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const [adminStats, setAdminStats] = useState({
     totalFlights: 0,
     totalVehicles: 0,
@@ -47,6 +55,10 @@ export default function AdminDashboard() {
     totalClients: 0,
     totalReservations: 0,
     monthlyRevenue: 0,
+    dailyRevenue: 0,
+    dailyRevenueData: [] as { date: string; revenue: number }[],
+    monthlyRevenueData: [] as { month: string; revenue: number }[],
+    yearlyRevenueData: [] as { year: number; revenue: number }[],
     popularDestinations: [],
     recentReservations: [],
   });
@@ -96,17 +108,26 @@ export default function AdminDashboard() {
           return sum + amount;
         }, 0);
 
-        // Revenu mensuel pour le graphique
-        const monthlyRevenue = calculateMonthlyRevenue(factures);
+        // Calcul des revenus détaillés
+        const dailyRevenueData = calculateDailyRevenue(factures);
+        const monthlyRevenueData = calculateMonthlyRevenue(factures);
+        const yearlyRevenueData = calculateYearlyRevenue(factures);
         
-        // Destinations populaires (à adapter selon votre structure de données)
+        // Revenu du jour
+        const today = new Date().toISOString().split('T')[0];
+        const dailyRevenue = dailyRevenueData.find(d => d.date === today)?.revenue || 0;
+        
+        // Revenu mensuel total
+        const monthlyRevenue = monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0);
+        
+        // Destinations populaires
         const popularDestinations = calculatePopularDestinations(factures);
 
         const realStats: DashboardStats = {
           totalClients,
           totalReservations,
           totalRevenue,
-          monthlyRevenue: monthlyRevenue.reduce((sum, item) => sum + item.revenue, 0),
+          monthlyRevenue,
           popularDestinations,
           recentReservations: reservations
             .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
@@ -121,7 +142,11 @@ export default function AdminDashboard() {
           totalRevenue,
           totalClients,
           totalReservations,
-          monthlyRevenue: monthlyRevenue.reduce((sum, item) => sum + item.revenue, 0),
+          monthlyRevenue,
+          dailyRevenue,
+          dailyRevenueData,
+          monthlyRevenueData,
+          yearlyRevenueData,
           popularDestinations,
           recentReservations: reservations
             .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
@@ -137,17 +162,44 @@ export default function AdminDashboard() {
       }
     };
 
-    const calculateMonthlyRevenue = (factures: any[]) => {
-      const monthlyData: { [key: string]: { display: string; total: number } } = {};
+    const calculateDailyRevenue = (factures: any[]) => {
+      const dailyData: { [key: string]: number } = {};
       
       factures.forEach(facture => {
-        // Utiliser dateCreated au lieu de dateEmission comme demandé
         const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
         
         if (dateSource) {
           const date = new Date(dateSource);
           if (!isNaN(date.getTime())) {
-            // Format YYYY-MM pour un tri chronologique correct
+            const dateKey = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            
+            const amount = Number(
+              (facture as any).totalPrice || 
+              (facture as any).montant || 
+              (facture as any).montantTotal || 0
+            );
+            
+            dailyData[dateKey] = (dailyData[dateKey] || 0) + amount;
+          }
+        }
+      });
+
+      // Convertir en tableau et trier par date
+      return Object.entries(dailyData)
+        .map(([date, revenue]) => ({ date, revenue }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(-30); // Derniers 30 jours
+    };
+
+    const calculateMonthlyRevenue = (factures: any[]) => {
+      const monthlyData: { [key: string]: { display: string; total: number } } = {};
+      
+      factures.forEach(facture => {
+        const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
+        
+        if (dateSource) {
+          const date = new Date(dateSource);
+          if (!isNaN(date.getTime())) {
             const yearMonth = date.toISOString().slice(0, 7);
             const displayMonth = date.toLocaleDateString('fr-FR', { 
               year: 'numeric', 
@@ -168,7 +220,6 @@ export default function AdminDashboard() {
         }
       });
 
-      // Trier chronologiquement et formater pour l'affichage
       return Object.entries(monthlyData)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([key, data]) => ({
@@ -177,31 +228,57 @@ export default function AdminDashboard() {
         }));
     };
 
+    const calculateYearlyRevenue = (factures: any[]) => {
+      const yearlyData: { [key: number]: number } = {};
+      
+      factures.forEach(facture => {
+        const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
+        
+        if (dateSource) {
+          const date = new Date(dateSource);
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            
+            const amount = Number(
+              (facture as any).totalPrice || 
+              (facture as any).montant || 
+              (facture as any).montantTotal || 0
+            );
+            
+            yearlyData[year] = (yearlyData[year] || 0) + amount;
+          }
+        }
+      });
+
+      return Object.entries(yearlyData)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .map(([year, revenue]) => ({
+          year: Number(year),
+          revenue
+        }));
+    };
+
     const calculatePopularDestinations = (factures: any[]) => {
       const destinations: { [key: string]: number } = {};
       
       factures.forEach(facture => {
-        // Extraire toutes les destinations depuis les données de la facture
         const destinationString = (facture as any).destination || "";
         
         if (destinationString) {
-          // Séparer les destinations par virgule et traiter chaque destination
           const allDestinations = destinationString
             .split(',')
             .map((dest: string) => dest.trim())
             .filter((dest: string) => dest && dest !== "Non spécifié");
           
-          // Compter chaque destination séparément
           allDestinations.forEach((dest: string) => {
             destinations[dest] = (destinations[dest] || 0) + 1;
           });
         }
-        
-          });
+      });
 
       return Object.entries(destinations)
         .map(([name, count]) => ({ 
-          name: name.replace(/,/g, ''), // Remove commas
+          name: name.replace(/,/g, ''),
           count 
         }))
         .sort((a, b) => b.count - a.count)
@@ -241,9 +318,67 @@ export default function AdminDashboard() {
     );
   }
 
-  const revenueGrowth = 12.5; // Mock growth percentage
+  const revenueGrowth = 12.5;
   const clientGrowth = 8.3;
   const reservationGrowth = 15.2;
+
+  // Calculer la croissance du revenu journalier
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const todayRevenue = adminStats.dailyRevenueData.find(d => d.date === today)?.revenue || 0;
+  const yesterdayRevenue = adminStats.dailyRevenueData.find(d => d.date === yesterday)?.revenue || 0;
+  const dailyGrowth = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
+
+  // Données pour le graphique basé sur le filtre
+  const getChartData = () => {
+    switch (timeFilter) {
+      case 'day':
+        return adminStats.dailyRevenueData.slice(-7).map(item => ({
+          label: item.date,
+          revenue: item.revenue
+        }));
+      case 'week':
+        // Regrouper par semaine
+        const weeklyData: { [key: string]: number } = {};
+        adminStats.dailyRevenueData.forEach(day => {
+          const date = new Date(day.date);
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay());
+          const weekKey = weekStart.toISOString().split('T')[0];
+          weeklyData[weekKey] = (weeklyData[weekKey] || 0) + day.revenue;
+        });
+        return Object.entries(weeklyData)
+          .map(([week, revenue]) => {
+            const date = new Date(week);
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+            const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            return { 
+              label: `Sem ${weekNumber}`,
+              revenue 
+            };
+          })
+          .slice(-8);
+      case 'month':
+        return adminStats.monthlyRevenueData.slice(-12).map(item => ({
+          label: item.month,
+          revenue: item.revenue
+        }));
+      case 'year':
+        return adminStats.yearlyRevenueData.map(item => ({
+          label: item.year.toString(),
+          revenue: item.revenue
+        }));
+      default:
+        return adminStats.monthlyRevenueData.slice(-12).map(item => ({
+          label: item.month,
+          revenue: item.revenue
+        }));
+    }
+  };
+
+  const chartData = getChartData();
+  const maxRevenue = Math.max(...chartData.map(item => item.revenue), 0);
 
   return (
     <div className="p-6 space-y-8">
@@ -294,9 +429,6 @@ export default function AdminDashboard() {
               <CardTitle className="text-sm font-medium text-emerald-700">
                 Chiffre d'Affaires Total
               </CardTitle>
-              {/* <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-                <Euro className="w-4 h-4 text-white" />
-              </div> */}
             </div>
           </CardHeader>
           <CardContent>
@@ -370,25 +502,247 @@ export default function AdminDashboard() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-orange-700">
-                Revenus Mensuels
+                Revenu Journalier
               </CardTitle>
               <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-white" />
+                <DollarSign className="w-4 h-4 text-white" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-orange-900">
-                {stats.monthlyRevenue.toLocaleString()} Ar
+                {adminStats.dailyRevenue.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-orange-600" />
-                <span className="text-sm text-orange-600">Ce mois-ci</span>
+                {dailyGrowth >= 0 ? (
+                  <TrendingUp className="w-4 h-4 text-orange-600" />
+                ) : (
+                  <TrendingDown className="w-4 h-4 text-red-600" />
+                )}
+                <span className={`text-sm ${dailyGrowth >= 0 ? 'text-orange-600' : 'text-red-600'}`}>
+                  {dailyGrowth >= 0 ? '+' : ''}{dailyGrowth.toFixed(1)}% vs hier
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Analytics Section - Bilans de Chiffre d'Affaires */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900">Bilans de Chiffre d'Affaires</h2>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={timeFilter} onValueChange={(value: 'day' | 'week' | 'month' | 'year') => setTimeFilter(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Période" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Journalier</SelectItem>
+                  <SelectItem value="week">Hebdomadaire</SelectItem>
+                  <SelectItem value="month">Mensuel</SelectItem>
+                  <SelectItem value="year">Annuel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <BarChart className="w-4 h-4 text-muted-foreground" />
+              <Select value={chartType} onValueChange={(value: 'bar' | 'line') => setChartType(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Barres</SelectItem>
+                  <SelectItem value="line">Ligne</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+              <BarChart className="w-4 h-4 mr-1" />
+              Analytics
+            </Badge>
+          </div>
+        </div>
+
+        {/* Graphique de revenu */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {chartType === 'bar' ? <BarChart className="w-5 h-5 text-blue-500" /> : <LineChart className="w-5 h-5 text-green-500" />}
+              Évolution du Chiffre d'Affaires
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 relative">
+              <div className="absolute inset-0 flex flex-col justify-between">
+                {/* Échelle verticale */}
+                <div className="flex flex-col justify-between h-full text-xs text-muted-foreground">
+                  <span>{maxRevenue.toLocaleString()} Ar</span>
+                  <span>{(maxRevenue * 0.75).toLocaleString()} Ar</span>
+                  <span>{(maxRevenue * 0.5).toLocaleString()} Ar</span>
+                  <span>{(maxRevenue * 0.25).toLocaleString()} Ar</span>
+                  <span>0 Ar</span>
+                </div>
+              </div>
+              
+              {/* Graphique */}
+              <div className="ml-12 h-full flex items-end gap-4">
+                {chartData.map((item, index) => (
+                  <div key={index} className="flex flex-col items-center flex-1">
+                    <div
+                      className={`w-full ${
+                        chartType === 'bar' 
+                          ? 'bg-gradient-to-t from-blue-400 to-blue-600 rounded-t' 
+                          : 'bg-blue-500 rounded-full'
+                      }`}
+                      style={{
+                        height: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 85}%` : '0%',
+                        minHeight: '4px'
+                      }}
+                    />
+                    <div className="text-xs text-muted-foreground mt-2 text-center">
+                      {timeFilter === 'day' 
+                        ? new Date(item.label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                        : item.label
+                      }
+                    </div>
+                    <div className="text-xs font-medium text-blue-900 mt-1">
+                      {item.revenue.toLocaleString()} Ar
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bilan Journalier */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                Bilan Journalier (30 derniers jours)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {adminStats.dailyRevenueData.slice().reverse().map((day, index) => (
+                  <div key={day.date} className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-700">
+                          {new Date(day.date).getDate()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">
+                          {new Date(day.date).toLocaleDateString('fr-FR', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-blue-900">
+                        {day.revenue.toLocaleString()} Ar
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {adminStats.dailyRevenueData.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune donnée de revenu journalier</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bilan Mensuel */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart className="w-5 h-5 text-green-500" />
+                Bilan Mensuel
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {adminStats.monthlyRevenueData.slice().reverse().map((month, index) => (
+                  <div key={month.month} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-green-700">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium">{month.month}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-green-900">
+                        {month.revenue.toLocaleString()} Ar
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {adminStats.monthlyRevenueData.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <BarChart className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune donnée de revenu mensuel</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bilan Annuel */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LineChart className="w-5 h-5 text-purple-500" />
+                Bilan Annuel
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {adminStats.yearlyRevenueData.slice().reverse().map((year, index) => (
+                  <div key={year.year} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-purple-700">
+                          {year.year}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium">Année {year.year}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-purple-900">
+                        {year.revenue.toLocaleString()} Ar
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {adminStats.yearlyRevenueData.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <LineChart className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune donnée de revenu annuel</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Service Inventory Statistics */}
@@ -477,10 +831,10 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-rose-50 to-rose-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-rose-700">
+                <CardTitle className="text-sm font-medium text-purple-700">
                   Hébergements Disponibles
                 </CardTitle>
                 <div className="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center">
@@ -490,11 +844,11 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-2xl font-bold text-rose-900">
+                <div className="text-2xl font-bold text-purple-900">
                   {adminStats.totalAccommodations}
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm text-rose-600">
+                  <span className="text-sm text-purple-600">
                     hébergements répertoriés
                   </span>
                 </div>
@@ -504,129 +858,66 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Top Destinations */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              Destinations Populaires
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.popularDestinations.map((destination, index) => (
-                <div
-                  key={destination.name}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
-                        index === 0
-                          ? "bg-gradient-to-r from-amber-400 to-amber-600"
-                          : index === 1
-                            ? "bg-gradient-to-r from-gray-400 to-gray-600"
-                            : index === 2
-                              ? "bg-gradient-to-r from-amber-600 to-amber-800"
-                              : "bg-gradient-to-r from-blue-400 to-blue-600"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium">{destination.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.count} réservations
-                      </p>
-                    </div>
+      {/* Top Destinations */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-amber-500" />
+            Destinations Populaires
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {stats.popularDestinations.map((destination, index) => (
+              <div
+                key={destination.name}
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
+                      index === 0
+                        ? "bg-gradient-to-r from-amber-400 to-amber-600"
+                        : index === 1
+                          ? "bg-gradient-to-r from-gray-400 to-gray-600"
+                          : index === 2
+                            ? "bg-gradient-to-r from-amber-600 to-amber-800"
+                            : "bg-gradient-to-r from-blue-400 to-blue-600"
+                    }`}
+                  >
+                    {index + 1}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-16 h-2 rounded-full bg-gradient-to-r ${
-                        index === 0
-                          ? "from-amber-200 to-amber-400"
-                          : index === 1
-                            ? "from-gray-200 to-gray-400"
-                            : index === 2
-                              ? "from-amber-300 to-amber-500"
-                              : "from-blue-200 to-blue-400"
-                      }`}
-                    ></div>
-                    <span className="text-sm font-medium w-8 text-right">
-                      {Math.round(
-                        (destination.count / stats.totalReservations) * 100,
-                      )}
-                      %
-                    </span>
+                  <div>
+                    <p className="font-medium">{destination.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {destination.count} réservations
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Insights */}
-        {/* <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-blue-500" />
-              Aperçus Rapides
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-blue-700">
-                    Taux de Conversion
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-16 h-2 rounded-full bg-gradient-to-r ${
+                      index === 0
+                        ? "from-amber-200 to-amber-400"
+                        : index === 1
+                          ? "from-gray-200 to-gray-400"
+                          : index === 2
+                            ? "from-amber-300 to-amber-500"
+                            : "from-blue-200 to-blue-400"
+                    }`}
+                  ></div>
+                  <span className="text-sm font-medium w-8 text-right">
+                    {Math.round(
+                      (destination.count / stats.totalReservations) * 100,
+                    )}
+                    %
                   </span>
-                  <Badge className="bg-blue-500 text-white">Excellent</Badge>
                 </div>
-                <div className="text-2xl font-bold text-blue-900">78.5%</div>
-                <p className="text-xs text-blue-600">
-                  Des visiteurs deviennent clients
-                </p>
               </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-emerald-700">
-                    Panier Moyen
-                  </span>
-                  <Badge className="bg-emerald-500 text-white">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    +12%
-                  </Badge>
-                </div>
-                <div className="text-2xl font-bold text-emerald-900">
-                  €
-                  {Math.round(
-                    stats.totalRevenue / stats.totalReservations,
-                  ).toLocaleString()}
-                </div>
-                <p className="text-xs text-emerald-600">
-                  Valeur moyenne par réservation
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-purple-700">
-                    Satisfaction Client
-                  </span>
-                  <Badge className="bg-purple-500 text-white">4.8/5</Badge>
-                </div>
-                <div className="text-2xl font-bold text-purple-900">96%</div>
-                <p className="text-xs text-purple-600">
-                  Clients satisfaits ou très satisfaits
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Action Buttons for Admin */}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100">

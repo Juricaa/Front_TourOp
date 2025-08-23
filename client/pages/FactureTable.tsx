@@ -247,7 +247,7 @@ export function FactureTable() {
 
     const getTravelPlanData = (): TravelPlan | null => {
         if (!reservation || !client) {
-            console.error("Données manquantes - Client:", client, "Reservation:", reservation);
+            // console.error("Données manquantes - Client:", client, "Reservation:", reservation);
             return null;
         }
 

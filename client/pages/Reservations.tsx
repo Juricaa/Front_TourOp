@@ -397,7 +397,7 @@ export default function Reservations() {
                 {filteredReservations
                   .sort((a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime())
                   .map((reservation) => (
-                  <TableRow key={reservation.id} className="hover:bg-muted/50">
+                  <TableRow key={reservation.idFacture} className="hover:bg-muted/50">
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">

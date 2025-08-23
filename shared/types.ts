@@ -12,6 +12,7 @@ export interface Client {
   lastVisit?: string;
   notes?: string;
   destinations: string[];
+  persons?: { name: string }[];
   createdAt?: Date;
   updatedAt?: Date;
 }

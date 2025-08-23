@@ -41,7 +41,6 @@ export default function Clients() {
     try {
       setError(null);
       const response: ApiResponse<Client[]> = await clientService.getClients();
-      console.log("Fetched clients:", response);
       if (response.success && response.data) {
         setClients(response.data);
       } else {
