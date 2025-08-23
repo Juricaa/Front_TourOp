@@ -28,6 +28,7 @@ import {
   Settings,
   HelpCircle,
   UserCheck,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +42,11 @@ const adminNavigation = [
     title: "Tableau de Bord",
     icon: BarChart3,
     href: "/",
+  },
+  {
+    title: "Bilan Financier",
+    icon: DollarSign,
+    href: "/bilan",
   },
   {
     title: "Destinations",

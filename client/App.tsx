@@ -42,6 +42,7 @@ import ResetPassword from "./pages/ResetPassword";
 
 import { BookingProvider } from "@/contexts/BookingContext";
 import UserManagement from "./pages/UserManangement";
+import Bilan from "./pages/Bilan";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,16 @@ const App = () => (
                   <ProtectedRoute>
                     <AdminLayout>
                       <AdminDashboard />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/bilan"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout>
+                      <Bilan />
                     </AdminLayout>
                   </ProtectedRoute>
                 }

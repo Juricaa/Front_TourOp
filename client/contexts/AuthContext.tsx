@@ -40,7 +40,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Routes accessible by role
 const rolePermissions = {
   admin: {
-    routes: ["/", "/destinations", "/settings", "/hebergements", "/clients", "/reservations", "/factures", "/plans-voyage", "/voitures", "/activites", "/vols", "/users"], // All routes for admin
+    routes: ["/", "/destinations", "/settings", "/hebergements", "/clients", "/reservations", "/factures", "/plans-voyage", "/voitures", "/activites", "/vols", "/users","/bilan"], // All routes for admin
     permissions: ["read", "write", "delete"] as const,
   },
   secretary: {
