@@ -19,6 +19,19 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+
+import {
+  ResponsiveContainer,
+  LineChart as RLineChart,
+  BarChart as RBarChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { factureService } from "@/services/factureService";
 
@@ -51,7 +64,7 @@ export default function Bilan() {
         const monthlyRevenueData = calculateMonthlyRevenue(factures);
         const yearlyRevenueData = calculateYearlyRevenue(factures);
         const hourlyRevenueData = calculateHourlyRevenue(factures); // Nouveau: calcul des données horaires
-        
+
         // Revenu total
         const totalRevenue = factures.reduce((sum, facture) => {
           const amount = Number((facture as any).totalPrice || (facture as any).montant || (facture as any).montantTotal || 0);
@@ -59,12 +72,12 @@ export default function Bilan() {
         }, 0);
 
         // Moyennes
-        const averageMonthly = monthlyRevenueData.length > 0 
-          ? monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / monthlyRevenueData.length 
+        const averageMonthly = monthlyRevenueData.length > 0
+          ? monthlyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / monthlyRevenueData.length
           : 0;
-        
-        const averageDaily = dailyRevenueData.length > 0 
-          ? dailyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / dailyRevenueData.length 
+
+        const averageDaily = dailyRevenueData.length > 0
+          ? dailyRevenueData.reduce((sum, item) => sum + item.revenue, 0) / dailyRevenueData.length
           : 0;
 
         // Taux de croissance (comparaison mois précédent)
@@ -91,22 +104,22 @@ export default function Bilan() {
 
     const calculateHourlyRevenue = (factures: any[]) => {
       const hourlyData: { [key: string]: number } = {};
-      
+
       factures.forEach(facture => {
         const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
-        
+
         if (dateSource) {
           const date = new Date(dateSource);
           if (!isNaN(date.getTime())) {
             // Obtenir l'heure au format "HH:00"
             const hour = `${date.getHours().toString().padStart(2, '0')}:00`;
-            
+
             const amount = Number(
-              (facture as any).totalPrice || 
-              (facture as any).montant || 
+              (facture as any).totalPrice ||
+              (facture as any).montant ||
               (facture as any).montantTotal || 0
             );
-            
+
             hourlyData[hour] = (hourlyData[hour] || 0) + amount;
           }
         }
@@ -114,7 +127,7 @@ export default function Bilan() {
 
       // Créer un tableau pour toutes les heures de la journée (même celles sans vente)
       const allHours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-      
+
       return allHours.map(hour => ({
         hour,
         revenue: hourlyData[hour] || 0
@@ -123,21 +136,21 @@ export default function Bilan() {
 
     const calculateDailyRevenue = (factures: any[]) => {
       const dailyData: { [key: string]: number } = {};
-      
+
       factures.forEach(facture => {
         const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
-        
+
         if (dateSource) {
           const date = new Date(dateSource);
           if (!isNaN(date.getTime())) {
             const dateKey = date.toISOString().split('T')[0];
-            
+
             const amount = Number(
-              (facture as any).totalPrice || 
-              (facture as any).montant || 
+              (facture as any).totalPrice ||
+              (facture as any).montant ||
               (facture as any).montantTotal || 0
             );
-            
+
             dailyData[dateKey] = (dailyData[dateKey] || 0) + amount;
           }
         }
@@ -151,25 +164,25 @@ export default function Bilan() {
 
     const calculateMonthlyRevenue = (factures: any[]) => {
       const monthlyData: { [key: string]: { display: string; total: number } } = {};
-      
+
       factures.forEach(facture => {
         const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
-        
+
         if (dateSource) {
           const date = new Date(dateSource);
           if (!isNaN(date.getTime())) {
             const yearMonth = date.toISOString().slice(0, 7);
-            const displayMonth = date.toLocaleDateString('fr-FR', { 
-              year: 'numeric', 
-              month: 'long' 
+            const displayMonth = date.toLocaleDateString('fr-FR', {
+              year: 'numeric',
+              month: 'long'
             });
-            
+
             const amount = Number(
-              (facture as any).totalPrice || 
-              (facture as any).montant || 
+              (facture as any).totalPrice ||
+              (facture as any).montant ||
               (facture as any).montantTotal || 0
             );
-            
+
             if (!monthlyData[yearMonth]) {
               monthlyData[yearMonth] = { display: displayMonth, total: 0 };
             }
@@ -188,21 +201,21 @@ export default function Bilan() {
 
     const calculateYearlyRevenue = (factures: any[]) => {
       const yearlyData: { [key: number]: number } = {};
-      
+
       factures.forEach(facture => {
         const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
-        
+
         if (dateSource) {
           const date = new Date(dateSource);
           if (!isNaN(date.getTime())) {
             const year = date.getFullYear();
-            
+
             const amount = Number(
-              (facture as any).totalPrice || 
-              (facture as any).montant || 
+              (facture as any).totalPrice ||
+              (facture as any).montant ||
               (facture as any).montantTotal || 0
             );
-            
+
             yearlyData[year] = (yearlyData[year] || 0) + amount;
           }
         }
@@ -218,12 +231,12 @@ export default function Bilan() {
 
     const calculateGrowthRate = (monthlyData: { month: string; revenue: number }[]) => {
       if (monthlyData.length < 2) return 0;
-      
+
       const currentMonth = monthlyData[monthlyData.length - 1].revenue;
       const previousMonth = monthlyData[monthlyData.length - 2].revenue;
-      
+
       if (previousMonth === 0) return 0;
-      
+
       return ((currentMonth - previousMonth) / previousMonth) * 100;
     };
 
@@ -292,25 +305,25 @@ export default function Bilan() {
 
   const chartData = getChartData();
   const maxRevenue = Math.max(...chartData.map(item => item.revenue), 0);
-  
+
   // Calcul dynamique des étapes de l'axe Y basé sur les données réelles
   const calculateYAxisSteps = (maxValue: number) => {
     if (maxValue === 0) return [0, 20, 40, 60, 80, 100, 120];
-    
+
     // Arrondir à la centaine supérieure pour avoir une échelle propre
     const roundedMax = Math.ceil(maxValue / 100) * 100;
     const step = Math.max(20, Math.ceil(roundedMax / 6)); // Au moins 6 étapes
-    
+
     const steps = [];
     for (let i = 0; i <= roundedMax; i += step) {
       steps.push(i);
     }
-    
+
     // S'assurer d'avoir au moins 3 étapes
     if (steps.length < 3) {
       return [0, Math.ceil(maxValue / 2), maxValue];
     }
-    
+
     return steps;
   };
 
@@ -373,7 +386,7 @@ export default function Bilan() {
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-emerald-900">
-                {revenueData.totalRevenue.toLocaleString()} Ar 
+                {revenueData.totalRevenue.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-emerald-600">
@@ -522,128 +535,59 @@ export default function Bilan() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80 relative">
-              {/* Échelle verticale (Y-axis) - Montant croissant */}
-              <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between items-end pr-2 text-xs text-muted-foreground">
-                {yAxisSteps.map((step, index) => (
-                  <span key={index}>{step.toLocaleString()}</span>
-                ))}
-              </div>
-              
-              {/* Graphique principal */}
-              <div className="ml-12 h-full flex flex-col">
-                {/* Lignes horizontales de la grille */}
-                <div className="flex-1 relative">
-                  {yAxisSteps.map((step, index) => (
-                    <div 
-                      key={index}
-                      className="absolute w-full border-t border-gray-200"
-                      style={{ bottom: `${(index * (100 / (yAxisSteps.length - 1)))}%` }}
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                {chartType === "bar" ? (
+                  <RBarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="label" />
+                    <YAxis                 
+                    tickFormatter={(value: number) => {
+                      if (value >= 1_000_000) {
+                        return (value / 1_000_000).toFixed(1) + "M";
+                      } else if (value >= 1_000) {
+                        return (value / 1_000).toFixed(1) + "K";
+                      }
+                      return value;
+                    }}
                     />
-                  ))}
-                  
-                  {/* Barres/Points du graphique avec ligne d'évolution */}
-                  <div className="absolute inset-0 flex items-end justify-between px-2">
-                    {chartData.map((item, index) => {
-                      const heightPercentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
-                      const scaledHeight = (item.revenue / yAxisSteps[yAxisSteps.length - 1]) * 100;
-                      const isGrowing = index > 0 && item.revenue > chartData[index - 1].revenue;
-                      const isHighest = item.revenue === maxRevenue;
-                      
-                      return (
-                        <div key={index} className="flex flex-col items-center flex-1 group relative">
-                          {/* Barre/Point du graphique avec indicateur de croissance */}
-                          <div
-                            className={`relative z-10 transition-all duration-300 ${
-                              chartType === 'bar' 
-                                ? `w-full bg-gradient-to-t ${
-                                    isHighest 
-                                      ? 'from-yellow-400 to-yellow-600' 
-                                      : isGrowing
-                                      ? 'from-green-400 to-green-600'
-                                      : 'from-blue-400 to-blue-600'
-                                  } rounded-t hover:shadow-lg` 
-                                : `w-4 h-4 rounded-full ${
-                                    isHighest 
-                                      ? 'bg-yellow-500 ring-4 ring-yellow-200' 
-                                      : isGrowing
-                                      ? 'bg-green-500 ring-2 ring-green-200'
-                                      : 'bg-blue-500'
-                                  } hover:scale-125`
-                            }`}
-                            style={{
-                              height: chartType === 'bar' ? `${scaledHeight}%` : 'auto',
-                              minHeight: chartType === 'bar' ? '4px' : 'auto'
-                            }}
-                          >
-                            {/* Indicateur de tendance */}
-                            {chartType === 'line' && isGrowing && (
-                              <TrendingUp className="absolute -top-6 -right-2 w-4 h-4 text-green-500" />
-                            )}
-                          </div>
-                          
-                          {/* Ligne de connexion pour graphique en ligne avec effet de pente */}
-                          {chartType === 'line' && index > 0 && (
-                            <div
-                              className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-blue-300 to-blue-400 -translate-y-1/2 z-0"
-                              style={{
-                                left: '-50%',
-                                transform: `translateY(-50%) ${chartData[index].revenue > chartData[index - 1].revenue ? 'rotate(3deg)' : 'rotate(-3deg)'}`
-                              }}
-                            />
-                          )}
-                          
-                          {/* Info-bulle au survol avec indicateur de croissance */}
-                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-slate-900 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
-                            <div className="font-semibold">{item.revenue.toLocaleString()} Ar</div>
-                            {index > 0 && (
-                              <div className={`text-xs ${item.revenue > chartData[index - 1].revenue ? 'text-green-300' : 'text-red-300'}`}>
-                                {item.revenue > chartData[index - 1].revenue ? '↗' : '↘'} 
-                                {Math.abs(((item.revenue - chartData[index - 1].revenue) / chartData[index - 1].revenue) * 100).toFixed(1)}%
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Étiquette - Temps sur l'axe X */}
-                          <div className="text-xs text-muted-foreground mt-2 text-center">
-                            {timeFilter === 'hour' 
-                              ? item.label
-                              : timeFilter === 'day'
-                              ? new Date(item.label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-                              : timeFilter === 'month'
-                              ? item.label.split(' ')[0]
-                              : item.label
-                            }
-                          </div>
-                          
-                          {/* Valeur avec indicateur de croissance */}
-                          <div className={`text-xs font-medium mt-1 ${
-                            isHighest ? 'text-yellow-700 font-bold' : 
-                            isGrowing ? 'text-green-700' : 'text-blue-900'
-                          }`}>
-                            {item.revenue.toLocaleString()} Ar
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Ligne de tendance générale */}
-                  {chartType === 'line' && chartData.length > 1 && (
-                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-blue-200 to-purple-200 opacity-50" />
-                  )}
-                </div>
-                
-                {/* Légende en bas */}
-                <div className="h-8 flex items-center justify-center text-sm text-muted-foreground mt-4">
-                  {timeFilter === 'hour' ? 'Dernières 24 heures' : 
-                   timeFilter === 'day' ? '7 derniers jours' : 
-                   timeFilter === 'month' ? '12 derniers mois' : 
-                   'Toutes les années'}
-                </div>
-              </div>
+
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} Ar`} />
+                    {/* <Legend /> */}
+                    <Bar dataKey="revenue" fill="#10b981" name="Chiffre d'Affaires" />
+                  </RBarChart>
+                ) : (
+                  <RLineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="label" />
+                    <YAxis 
+                     tickFormatter={(value: number) => {
+                      if (value >= 1_000_000) {
+                        return (value / 1_000_000).toFixed(1) + "M";
+                      } else if (value >= 1_000) {
+                        return (value / 1_000).toFixed(1) + "K";
+                      }
+                      return value;
+                    }}
+                    />
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} Ar`} />
+                    {/* <Legend /> */}
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      dot={{ r: 5 }}
+                      activeDot={{ r: 8 }}
+                      name="Chiffre d'Affaires"
+                    />
+                  </RLineChart>
+                )}
+              </ResponsiveContainer>
             </div>
           </CardContent>
+
+
         </Card>
 
         {/* Section des bilans détaillés (inchangée) */}
