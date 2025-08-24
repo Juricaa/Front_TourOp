@@ -26,6 +26,7 @@ interface RevenueData {
   daily: { date: string; revenue: number }[];
   monthly: { month: string; revenue: number }[];
   yearly: { year: number; revenue: number }[];
+  hourly: { hour: string; revenue: number }[]; // Nouveau: données horaires
   totalRevenue: number;
   averageMonthly: number;
   averageDaily: number;
@@ -35,7 +36,7 @@ interface RevenueData {
 export default function Bilan() {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<'day' | 'month' | 'year'>('month');
+  const [timeFilter, setTimeFilter] = useState<'hour' | 'day' | 'month' | 'year'>('hour'); // Ajout de 'hour'
   const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   const { user } = useAuth();
 
@@ -49,6 +50,7 @@ export default function Bilan() {
         const dailyRevenueData = calculateDailyRevenue(factures);
         const monthlyRevenueData = calculateMonthlyRevenue(factures);
         const yearlyRevenueData = calculateYearlyRevenue(factures);
+        const hourlyRevenueData = calculateHourlyRevenue(factures); // Nouveau: calcul des données horaires
         
         // Revenu total
         const totalRevenue = factures.reduce((sum, facture) => {
@@ -72,6 +74,7 @@ export default function Bilan() {
           daily: dailyRevenueData,
           monthly: monthlyRevenueData,
           yearly: yearlyRevenueData,
+          hourly: hourlyRevenueData, // Ajout des données horaires
           totalRevenue,
           averageMonthly,
           averageDaily,
@@ -84,6 +87,38 @@ export default function Bilan() {
       } finally {
         setLoading(false);
       }
+    };
+
+    const calculateHourlyRevenue = (factures: any[]) => {
+      const hourlyData: { [key: string]: number } = {};
+      
+      factures.forEach(facture => {
+        const dateSource = facture.dateCreated || facture.dateEmission || facture.createdAt;
+        
+        if (dateSource) {
+          const date = new Date(dateSource);
+          if (!isNaN(date.getTime())) {
+            // Obtenir l'heure au format "HH:00"
+            const hour = `${date.getHours().toString().padStart(2, '0')}:00`;
+            
+            const amount = Number(
+              (facture as any).totalPrice || 
+              (facture as any).montant || 
+              (facture as any).montantTotal || 0
+            );
+            
+            hourlyData[hour] = (hourlyData[hour] || 0) + amount;
+          }
+        }
+      });
+
+      // Créer un tableau pour toutes les heures de la journée (même celles sans vente)
+      const allHours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+      
+      return allHours.map(hour => ({
+        hour,
+        revenue: hourlyData[hour] || 0
+      }));
     };
 
     const calculateDailyRevenue = (factures: any[]) => {
@@ -227,6 +262,11 @@ export default function Bilan() {
 
   const getChartData = () => {
     switch (timeFilter) {
+      case 'hour':
+        return revenueData.hourly.map(item => ({
+          label: item.hour,
+          revenue: item.revenue
+        }));
       case 'day':
         return revenueData.daily.slice(-7).map(item => ({
           label: item.date,
@@ -243,8 +283,8 @@ export default function Bilan() {
           revenue: item.revenue
         }));
       default:
-        return revenueData.monthly.slice(-12).map(item => ({
-          label: item.month,
+        return revenueData.hourly.map(item => ({
+          label: item.hour,
           revenue: item.revenue
         }));
     }
@@ -252,6 +292,29 @@ export default function Bilan() {
 
   const chartData = getChartData();
   const maxRevenue = Math.max(...chartData.map(item => item.revenue), 0);
+  
+  // Calcul dynamique des étapes de l'axe Y basé sur les données réelles
+  const calculateYAxisSteps = (maxValue: number) => {
+    if (maxValue === 0) return [0, 20, 40, 60, 80, 100, 120];
+    
+    // Arrondir à la centaine supérieure pour avoir une échelle propre
+    const roundedMax = Math.ceil(maxValue / 100) * 100;
+    const step = Math.max(20, Math.ceil(roundedMax / 6)); // Au moins 6 étapes
+    
+    const steps = [];
+    for (let i = 0; i <= roundedMax; i += step) {
+      steps.push(i);
+    }
+    
+    // S'assurer d'avoir au moins 3 étapes
+    if (steps.length < 3) {
+      return [0, Math.ceil(maxValue / 2), maxValue];
+    }
+    
+    return steps;
+  };
+
+  const yAxisSteps = calculateYAxisSteps(maxRevenue);
 
   return (
     <div className="p-6 space-y-8">
@@ -413,11 +476,12 @@ export default function Bilan() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
-              <Select value={timeFilter} onValueChange={(value: 'day' | 'month' | 'year') => setTimeFilter(value)}>
+              <Select value={timeFilter} onValueChange={(value: 'hour' | 'day' | 'month' | 'year') => setTimeFilter(value)}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Période" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="hour">Horaire</SelectItem>
                   <SelectItem value="day">Journalier</SelectItem>
                   <SelectItem value="month">Mensuel</SelectItem>
                   <SelectItem value="year">Annuel</SelectItem>
@@ -449,7 +513,7 @@ export default function Bilan() {
           </div>
         </div>
 
-        {/* Graphique de revenu */}
+        {/* Graphique de revenu amélioré avec ligne d'évolution */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -458,49 +522,131 @@ export default function Bilan() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 relative">
-              <div className="absolute inset-0 flex flex-col justify-between">
-                {/* Échelle verticale */}
-                <div className="flex flex-col justify-between h-full text-xs text-muted-foreground">
-                  <span>{maxRevenue.toLocaleString()} Ar</span>
-                  <span>{(maxRevenue * 0.75).toLocaleString()} Ar</span>
-                  <span>{(maxRevenue * 0.5).toLocaleString()} Ar</span>
-                  <span>{(maxRevenue * 0.25).toLocaleString()} Ar</span>
-                  <span>0 Ar</span>
-                </div>
+            <div className="h-80 relative">
+              {/* Échelle verticale (Y-axis) - Montant croissant */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between items-end pr-2 text-xs text-muted-foreground">
+                {yAxisSteps.map((step, index) => (
+                  <span key={index}>{step.toLocaleString()}</span>
+                ))}
               </div>
               
-              {/* Graphique */}
-              <div className="ml-12 h-full flex items-end gap-4">
-                {chartData.map((item, index) => (
-                  <div key={index} className="flex flex-col items-center flex-1">
-                    <div
-                      className={`w-full ${
-                        chartType === 'bar' 
-                          ? 'bg-gradient-to-t from-blue-400 to-blue-600 rounded-t' 
-                          : 'bg-blue-500 rounded-full'
-                      }`}
-                      style={{
-                        height: maxRevenue > 0 ? `${(item.revenue / maxRevenue) * 85}%` : '0%',
-                        minHeight: '4px'
-                      }}
+              {/* Graphique principal */}
+              <div className="ml-12 h-full flex flex-col">
+                {/* Lignes horizontales de la grille */}
+                <div className="flex-1 relative">
+                  {yAxisSteps.map((step, index) => (
+                    <div 
+                      key={index}
+                      className="absolute w-full border-t border-gray-200"
+                      style={{ bottom: `${(index * (100 / (yAxisSteps.length - 1)))}%` }}
                     />
-                    <div className="text-xs text-muted-foreground mt-2 text-center">
-                      {timeFilter === 'day' 
-                        ? new Date(item.label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-                        : item.label
-                      }
-                    </div>
-                    <div className="text-xs font-medium text-blue-900 mt-1">
-                      {item.revenue.toLocaleString()} Ar
-                    </div>
+                  ))}
+                  
+                  {/* Barres/Points du graphique avec ligne d'évolution */}
+                  <div className="absolute inset-0 flex items-end justify-between px-2">
+                    {chartData.map((item, index) => {
+                      const heightPercentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+                      const scaledHeight = (item.revenue / yAxisSteps[yAxisSteps.length - 1]) * 100;
+                      const isGrowing = index > 0 && item.revenue > chartData[index - 1].revenue;
+                      const isHighest = item.revenue === maxRevenue;
+                      
+                      return (
+                        <div key={index} className="flex flex-col items-center flex-1 group relative">
+                          {/* Barre/Point du graphique avec indicateur de croissance */}
+                          <div
+                            className={`relative z-10 transition-all duration-300 ${
+                              chartType === 'bar' 
+                                ? `w-full bg-gradient-to-t ${
+                                    isHighest 
+                                      ? 'from-yellow-400 to-yellow-600' 
+                                      : isGrowing
+                                      ? 'from-green-400 to-green-600'
+                                      : 'from-blue-400 to-blue-600'
+                                  } rounded-t hover:shadow-lg` 
+                                : `w-4 h-4 rounded-full ${
+                                    isHighest 
+                                      ? 'bg-yellow-500 ring-4 ring-yellow-200' 
+                                      : isGrowing
+                                      ? 'bg-green-500 ring-2 ring-green-200'
+                                      : 'bg-blue-500'
+                                  } hover:scale-125`
+                            }`}
+                            style={{
+                              height: chartType === 'bar' ? `${scaledHeight}%` : 'auto',
+                              minHeight: chartType === 'bar' ? '4px' : 'auto'
+                            }}
+                          >
+                            {/* Indicateur de tendance */}
+                            {chartType === 'line' && isGrowing && (
+                              <TrendingUp className="absolute -top-6 -right-2 w-4 h-4 text-green-500" />
+                            )}
+                          </div>
+                          
+                          {/* Ligne de connexion pour graphique en ligne avec effet de pente */}
+                          {chartType === 'line' && index > 0 && (
+                            <div
+                              className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-blue-300 to-blue-400 -translate-y-1/2 z-0"
+                              style={{
+                                left: '-50%',
+                                transform: `translateY(-50%) ${chartData[index].revenue > chartData[index - 1].revenue ? 'rotate(3deg)' : 'rotate(-3deg)'}`
+                              }}
+                            />
+                          )}
+                          
+                          {/* Info-bulle au survol avec indicateur de croissance */}
+                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-slate-900 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+                            <div className="font-semibold">{item.revenue.toLocaleString()} Ar</div>
+                            {index > 0 && (
+                              <div className={`text-xs ${item.revenue > chartData[index - 1].revenue ? 'text-green-300' : 'text-red-300'}`}>
+                                {item.revenue > chartData[index - 1].revenue ? '↗' : '↘'} 
+                                {Math.abs(((item.revenue - chartData[index - 1].revenue) / chartData[index - 1].revenue) * 100).toFixed(1)}%
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Étiquette - Temps sur l'axe X */}
+                          <div className="text-xs text-muted-foreground mt-2 text-center">
+                            {timeFilter === 'hour' 
+                              ? item.label
+                              : timeFilter === 'day'
+                              ? new Date(item.label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                              : timeFilter === 'month'
+                              ? item.label.split(' ')[0]
+                              : item.label
+                            }
+                          </div>
+                          
+                          {/* Valeur avec indicateur de croissance */}
+                          <div className={`text-xs font-medium mt-1 ${
+                            isHighest ? 'text-yellow-700 font-bold' : 
+                            isGrowing ? 'text-green-700' : 'text-blue-900'
+                          }`}>
+                            {item.revenue.toLocaleString()} Ar
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                  
+                  {/* Ligne de tendance générale */}
+                  {chartType === 'line' && chartData.length > 1 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-blue-200 to-purple-200 opacity-50" />
+                  )}
+                </div>
+                
+                {/* Légende en bas */}
+                <div className="h-8 flex items-center justify-center text-sm text-muted-foreground mt-4">
+                  {timeFilter === 'hour' ? 'Dernières 24 heures' : 
+                   timeFilter === 'day' ? '7 derniers jours' : 
+                   timeFilter === 'month' ? '12 derniers mois' : 
+                   'Toutes les années'}
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Section des bilans détaillés (inchangée) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bilan Journalier */}
           <Card className="border-0 shadow-lg">
@@ -627,7 +773,7 @@ export default function Bilan() {
         </div>
       </div>
 
-      {/* Summary Section */}
+      {/* Summary Section (inchangée) */}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -663,7 +809,6 @@ export default function Bilan() {
                   <Target className="w-4 h-4 text-amber-600" />
                   <div>
                     <p className="text-sm font-medium text-amber-900">Diversification</p>
-
                     <p className="text-xs text-amber-700">Explorer de nouvelles sources de revenus</p>
                   </div>
                 </div>
