@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   TrendingUp,
@@ -62,7 +63,59 @@ export default function AdminDashboard() {
     popularDestinations: [],
     recentReservations: [],
   });
+  const [clients, setClients] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [accommodations, setAccommodations] = useState<any[]>([]);
+  const [flights, setFlights] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [searchClient, setSearchClient] = useState('');
+  const [searchVehicle, setSearchVehicle] = useState('');
+  const [searchAccommodation, setSearchAccommodation] = useState('');
+  const [searchFlight, setSearchFlight] = useState('');
+  const [searchActivity, setSearchActivity] = useState('');
+  const [searchReservation, setSearchReservation] = useState('');
   const { user } = useAuth();
+
+  // Fonctions de filtrage
+  const filteredClients = clients.filter(client =>
+    client.name?.toLowerCase().includes(searchClient.toLowerCase()) ||
+    client.email?.toLowerCase().includes(searchClient.toLowerCase()) ||
+    client.phone?.includes(searchClient) ||
+    client.nationality?.toLowerCase().includes(searchClient.toLowerCase())
+  );
+
+  const filteredVehicles = vehicles.filter(vehicle =>
+    vehicle.brand?.toLowerCase().includes(searchVehicle.toLowerCase()) ||
+    vehicle.model?.toLowerCase().includes(searchVehicle.toLowerCase()) ||
+    vehicle.vehicleType?.toLowerCase().includes(searchVehicle.toLowerCase()) ||
+    vehicle.location?.toLowerCase().includes(searchVehicle.toLowerCase())
+  );
+
+  const filteredAccommodations = accommodations.filter(accommodation =>
+    accommodation.name?.toLowerCase().includes(searchAccommodation.toLowerCase()) ||
+    accommodation.type?.toLowerCase().includes(searchAccommodation.toLowerCase()) ||
+    accommodation.location?.toLowerCase().includes(searchAccommodation.toLowerCase())
+  );
+
+  const filteredFlights = flights.filter(flight =>
+    flight.airline?.toLowerCase().includes(searchFlight.toLowerCase()) ||
+    flight.flightNumber?.toLowerCase().includes(searchFlight.toLowerCase()) ||
+    flight.departure?.toLowerCase().includes(searchFlight.toLowerCase()) ||
+    flight.arrival?.toLowerCase().includes(searchFlight.toLowerCase())
+  );
+
+  const filteredActivities = activities.filter(activity =>
+    activity.name?.toLowerCase().includes(searchActivity.toLowerCase()) ||
+    activity.category?.toLowerCase().includes(searchActivity.toLowerCase()) ||
+    activity.location?.toLowerCase().includes(searchActivity.toLowerCase()) ||
+    activity.difficulty?.toLowerCase().includes(searchActivity.toLowerCase())
+  );
+
+  const filteredReservations = adminStats.recentReservations.filter((reservation: any) =>
+    reservation.id?.toString().includes(searchReservation) ||
+    reservation.clientName?.toLowerCase().includes(searchReservation.toLowerCase()) ||
+    (reservation.totalPrice?.toString() || '').includes(searchReservation)
+  );
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -86,13 +139,41 @@ export default function AdminDashboard() {
         ]);
 
         // Extract data from API responses
-        const reservations = reservationsResponse.data || [];
+        const factures = facturesResponse.data || [];
         const clients = clientsResponse.data || [];
         const hebergements = hebergementsResponse.data || [];
-        const factures = facturesResponse.data || [];
         const flights = flightsResponse.data || [];
         const vehicles = vehiclesResponse.data || [];
         const activities = activitiesResponse.data || [];
+        
+        // Utiliser les factures comme réservations pour les statistiques
+        const reservations = factures.map(facture => {
+          // Mapper le statut des factures vers le statut des réservations
+          const factureStatus = facture.status as string;
+          let status: "en_attente" | "confirmé" | "en_cours" | "annulé" | "completed" = "en_attente";
+          
+          if (factureStatus === "paid" || factureStatus === "confirmé") {
+            status = "confirmé";
+          } else if (factureStatus === "sent") {
+            status = "en_cours";
+          } else if (factureStatus === "annulé" || factureStatus === "cancelled") {
+            status = "annulé";
+          } else if (factureStatus === "completed" || factureStatus === "terminé") {
+            status = "completed";
+          }
+          
+          // Convertir totalPrice en nombre
+          const totalPrice = Number(facture.totalPrice || facture.totalAmount || 0);
+          
+          return {
+            ...facture,
+            id: facture.idFacture || facture.id,
+            clientName: facture.clientName || 'Client inconnu',
+            totalPrice,
+            createdAt: facture.dateCreated || facture.createdAt || new Date(),
+            status
+          };
+        });
 
         // Calcul des statistiques
         const totalReservations = factures.length;
@@ -152,6 +233,13 @@ export default function AdminDashboard() {
             .sort((a, b) => new Date((b as any).createdAt || (b as any).dateCreation || Date.now()).getTime() - new Date((a as any).createdAt || (a as any).dateCreation || Date.now()).getTime())
             .slice(0, 5),
         };
+
+        // Set detailed data
+        setClients(clients);
+        setVehicles(vehicles);
+        setAccommodations(hebergements);
+        setFlights(flights);
+        setActivities(activities);
 
         setStats(realStats);
         setAdminStats(adminRealStats);
@@ -529,121 +617,6 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-    
-
-      {/* Service Inventory Statistics */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">Inventaire des Services</h2>
-          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-            <Package className="w-4 h-4 mr-1" />
-            Vue d'ensemble
-          </Badge>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-sky-50 to-sky-100">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-sky-700">
-                  Vols Disponibles
-                </CardTitle>
-                <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
-                  <Plane className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold text-sky-900">
-                  {adminStats.totalFlights}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-sky-600">
-                    vols enregistrés
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-green-700">
-                  Véhicules Disponibles
-                </CardTitle>
-                <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                  <Car className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold text-green-900">
-                  {adminStats.totalVehicles}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-green-600">
-                    véhicules en stock
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-amber-700">
-                  Activités Proposées
-                </CardTitle>
-                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                  <Star className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold text-amber-900">
-                  {adminStats.totalActivities}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-amber-600">
-                    activités disponibles
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-purple-700">
-                  Hébergements Disponibles
-                </CardTitle>
-                <div className="w-8 h-8 rounded-lg bg-rose-500 flex items-center justify-center">
-                  <Home className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold text-purple-900">
-                  {adminStats.totalAccommodations}
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-purple-600">
-                    hébergements répertoriés
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
       {/* Top Destinations */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
@@ -704,6 +677,265 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detailed Content Sections */}
+      <div className="space-y-8">
+        {/* Reservations Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-blue-500" />
+                Réservations ({adminStats.totalReservations})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher une réservation..."
+                  value={searchReservation}
+                  onChange={(e) => setSearchReservation(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredReservations.slice(0, 5).map((reservation: any) => (
+                <div key={reservation.idFacture} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Réservation #{reservation.idFacture}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Client: {reservation.clientId.name || 'Non spécifié'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">{Number(reservation.totalPrice || 0).toLocaleString()} Ar</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(reservation.dateCreated || Date.now()).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Clients Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-green-500" />
+                Clients ({adminStats.totalClients})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher un client..."
+                  value={searchClient}
+                  onChange={(e) => setSearchClient(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredClients.slice(0, 10).map((client) => (
+                <div key={client.idClient} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{client.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {client.email} • {client.phone}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {client.nationality} • {client.nbpersonnes} personnes
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{client.destinations?.join(', ') || 'Aucune destination'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Vehicles Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Car className="w-5 h-5 text-amber-500" />
+                Véhicules ({adminStats.totalVehicles})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher un véhicule..."
+                  value={searchVehicle}
+                  onChange={(e) => setSearchVehicle(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredVehicles.slice(0, 10).map((vehicle) => (
+                <div key={vehicle.idVoiture} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{vehicle.brand} {vehicle.model}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {vehicle.vehicleType} • {vehicle.capacity} places
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {vehicle.location} • {vehicle.pricePerDay.toLocaleString()} Ar/jour
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={vehicle.availability === 'available' ? 'default' : 'destructive'}>
+                        {vehicle.availability === 'available' ? 'Disponible' : 'Indisponible'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Accommodations Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Home className="w-5 h-5 text-purple-500" />
+                Hébergements ({adminStats.totalAccommodations})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher un hébergement..."
+                  value={searchAccommodation}
+                  onChange={(e) => setSearchAccommodation(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredAccommodations.slice(0, 10).map((accommodation) => (
+                <div key={accommodation.idHebergement} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{accommodation.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {accommodation.type} • {accommodation.location}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {accommodation.capacity} personnes
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{accommodation.priceRange.toLocaleString()} Ar</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Flights Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Plane className="w-5 h-5 text-sky-500" />
+                Vols ({adminStats.totalFlights})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher un vol..."
+                  value={searchFlight}
+                  onChange={(e) => setSearchFlight(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredFlights.slice(0, 10).map((flight) => (
+                <div key={flight.idVol} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{flight.airline} {flight.flightNumber}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {flight.aircraft} 
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                Prix {flight.price.toLocaleString()} Ar
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={flight.availability === 'available' ? 'default' : 'destructive'}>
+                        {flight.availability === 'available' ? 'Disponible' : 'Complet'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Activities Section */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-emerald-500" />
+                Activités ({adminStats.totalActivities})
+              </CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Rechercher une activité..."
+                  value={searchActivity}
+                  onChange={(e) => setSearchActivity(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {filteredActivities.slice(0, 10).map((activity) => (
+                <div key={activity.idActivite} className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{activity.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {activity.category} • {activity.location}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                       Duré {activity.duration}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{activity.priceAdult.toLocaleString()} Ar</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+    
 
       {/* Action Buttons for Admin */}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100">
