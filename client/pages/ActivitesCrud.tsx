@@ -328,14 +328,14 @@ export default function ActivitesCrud() {
                       <CardTitle className="text-lg text-green-900 flex items-center gap-2">
                         <CategoryIcon className="w-5 h-5" />
                         {activite.name}
-                        {activite.favorite && (
+                        {/* {activite.favorite && (
                           <Heart className="w-4 h-4 text-red-500 fill-current" />
-                        )}
+                        )} */}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge
                           variant="outline"
-                          className="text-xs border-green-200"
+                          className="text-xs bg-yellow-200 text-yellow-800"
                         >
                           {activite.category}
                         </Badge>
@@ -347,12 +347,12 @@ export default function ActivitesCrud() {
                         >
                           {activite.difficulty}
                         </Badge>
-                        <div className="flex items-center gap-1">
+                        {/* <div className="flex items-center gap-1">
                           {renderStars(activite.rating)}
                           <span className="text-xs text-muted-foreground ml-1">
                             ({activite.reviews})
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <DropdownMenu>
@@ -624,7 +624,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="priceAdult">Prix adulte (Ar)</Label>
+            <Label htmlFor="priceAdult">Prix  (Ar)</Label>
             <Input
               id="priceAdult"
               type="number"
@@ -642,7 +642,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="priceChild">Prix enfant (Ar)</Label>
             <Input
@@ -676,7 +676,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
               }
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -799,7 +799,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
           </div>
         )}
 
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Checkbox
             id="favorite"
             checked={formData.favorite}
@@ -808,7 +808,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
             }
           />
           <Label htmlFor="favorite">Activité favorite</Label>
-        </div>
+        </div> */}
 
         <div className="flex gap-2 pt-4">
           <Button type="submit" disabled={loading} className="flex-1">

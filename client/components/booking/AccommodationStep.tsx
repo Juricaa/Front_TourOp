@@ -223,9 +223,10 @@ export default function AccommodationStep() {
 
         if (accommodationResponse.success && accommodationResponse.data) {
           const newHebergement = accommodationResponse.data;
-
+          // Afficher un toast de succès pour la création 
+          
           // Rafraîchir la liste des hébergements disponibles après la création
-          const response = await fetch("http://localhost:8081/api/hebergements/");
+          const response = await fetch(`${API_BASE_URL}/hebergements/`);
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.data) {

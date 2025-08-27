@@ -203,6 +203,7 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
                 setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
               placeholder="ex : Antananarivo"
+              required
             />
               
           </div>
@@ -309,6 +310,7 @@ const VoitureForm: React.FC<VoitureFormProps> = ({
             }
             placeholder="Véhicule tout-terrain idéal pour les excursions..."
             rows={3}
+            required
           />
         </div>
 

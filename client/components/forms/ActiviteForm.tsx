@@ -351,7 +351,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
                     )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="rating">Note (1-5)</Label>
                         <Select
@@ -386,9 +386,9 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
                             }
                         />
                     </div>
-                </div>
+                </div> */}
 
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                     <Checkbox
                         id="favorite"
                         checked={formData.favorite}
@@ -397,7 +397,7 @@ const ActiviteForm: React.FC<ActiviteFormProps> = ({
                         }
                     />
                     <Label htmlFor="favorite">Activité favorite</Label>
-                </div>
+                </div> */}
 
                 <DialogFooter>
                     <Button type="submit" disabled={loading} className="w-full">

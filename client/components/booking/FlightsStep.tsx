@@ -173,6 +173,7 @@ export default function FlightsStep() {
   };
 
   const handleAddFlight = async (vol: Vol) => {
+    console.log ("Adding flight with form data:", flightForm);
     if (!flightForm.departureDate || !flightForm.returnDate) {
       toast({
         title: "Dates manquantes",
@@ -266,10 +267,11 @@ export default function FlightsStep() {
   const handleCreateFlight = async (data: any) => {
     setCreateLoading(true);
     try {
+console.log("Creating izy with data:", data);
       const response = await volService.createVol(data);
       if (response.success && response.data) {
         const newFlight = normalizeVol(response.data);
-
+       
         const reservationResult = await creerEtAjouterReservationVol(newFlight, {
           departureDate: data.departureDate,
           returnDate: data.returnDate,

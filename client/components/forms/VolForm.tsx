@@ -35,12 +35,22 @@ const airlines = [
   "Corsair",
 ];
 // const { state } = useBooking();
+
 const VolForm: React.FC<VolFormProps> = ({
   vol,
   onSubmit,
   loading,
   isEdit = false,
 }) => {
+  const { state, removeFlight, updateFlight } = useBooking();
+  
+  const [flightForm, setFlightForm] = useState({
+      departureDate: "",
+      returnDate: "",
+      departureCity: "",
+      arrivalCity: "",
+      passengers: state.client?.nbpersonnes || 1,
+    });
   const [formData, setFormData] = useState({
     airline: vol?.airline || "",
     flightNumber: vol?.flightNumber || "",
@@ -58,11 +68,26 @@ const VolForm: React.FC<VolFormProps> = ({
     rating: vol?.rating || 5,
     reviews: vol?.reviews || 0,
     popularity: vol?.popularity || 0,
+  
+    
   });
-
+ 
+  
+  
+  
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    const updatedFormData = {
+      ...formData,
+      departureDate: flightForm.departureDate,
+      returnDate: flightForm.returnDate,
+      departureCity: flightForm.departureCity,
+      arrivalCity: flightForm.arrivalCity,
+      passengers: flightForm.passengers,
+    };
+    console.log("Updated Form Data:", updatedFormData);
+    await onSubmit(updatedFormData);
   };
 
   const handleServicesChange = (value: string) => {
@@ -105,6 +130,7 @@ const VolForm: React.FC<VolFormProps> = ({
               </SelectContent>
             </Select>
           </div>
+           
           <div className="space-y-2">
             <Label htmlFor="flightNumber">Numéro de vol</Label>
             <Input
@@ -121,7 +147,57 @@ const VolForm: React.FC<VolFormProps> = ({
             />
           </div>
         </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="departureDate">Date de départ</Label>
+                        <Input
+                          id="departureDate"
+                          type="date"
+                          value={flightForm.departureDate}
+                          onChange={(e) =>
+                            setFlightForm({ ...flightForm, departureDate: e.target.value })
+                          }
+                          min={state.client?.dateTravel && state.client.dateTravel !== "" ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined}
+                          max={flightForm.returnDate || (state.client?.dateReturn && state.client.dateReturn !== "" ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="returnDate">Date de retour</Label>
+                        <Input
+                          id="returnDate"
+                          type="date"
+                          value={flightForm.returnDate}
+                          onChange={(e) =>
+                            setFlightForm({ ...flightForm, returnDate: e.target.value })
+                          }
+                          min={flightForm.departureDate || (state.client?.dateTravel && state.client.dateTravel !== "" ? new Date(state.client.dateTravel).toISOString().split("T")[0] : undefined)}
+                          max={state.client?.dateReturn && state.client.dateReturn !== "" ? new Date(state.client.dateReturn).toISOString().split("T")[0] : undefined}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="departureCity">Aéroport de départ</Label>
+                        <Input
+                          id="departureCity"
+                          value={flightForm.departureCity}
+                          onChange={(e) =>
+                            setFlightForm({ ...flightForm, departureCity: e.target.value })
+                          }
+                          placeholder="Saisir l'aéroport de départ"
+                        />
+                      </div>
+          
+                      <div className="space-y-2">
+                        <Label htmlFor="arrivalCity">Aéroport d’arrivée</Label>
+                        <Input
+                          id="arrivalCity"
+                          value={flightForm.arrivalCity}
+                          onChange={(e) =>
+                            setFlightForm({ ...flightForm, arrivalCity: e.target.value })
+                          }
+                          placeholder="Saisir l'aéroport d’arrivée"
+                        />
+                      </div>
+                    </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="routeFrom">De</Label>

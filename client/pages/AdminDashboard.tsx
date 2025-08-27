@@ -111,10 +111,10 @@ export default function AdminDashboard() {
     activity.difficulty?.toLowerCase().includes(searchActivity.toLowerCase())
   );
 
-  const filteredReservations = adminStats.recentReservations.filter((reservation: any) =>
-    reservation.id?.toString().includes(searchReservation) ||
-    reservation.clientName?.toLowerCase().includes(searchReservation.toLowerCase()) ||
-    (reservation.totalPrice?.toString() || '').includes(searchReservation)
+  const filteredReservations = adminStats.recentReservations.filter((facture: any) =>
+    facture.id?.toString().includes(searchReservation) ||
+    facture.clientId.name?.toLowerCase().includes(searchReservation.toLowerCase()) ||
+    (facture.totalPrice?.toString() || '').includes(searchReservation)
   );
 
   useEffect(() => {
@@ -362,6 +362,7 @@ export default function AdminDashboard() {
             destinations[dest] = (destinations[dest] || 0) + 1;
           });
         }
+        console.log("Destinations extraites:", destinationString);
       });
 
       return Object.entries(destinations)
@@ -370,7 +371,7 @@ export default function AdminDashboard() {
           count 
         }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+        
     };
 
     fetchStats();
@@ -618,7 +619,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Top Destinations */}
-      <Card className="border-0 shadow-lg">
+      <Card className="space-y-3 max-h-80 overflow-y-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />

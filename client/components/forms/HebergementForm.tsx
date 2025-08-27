@@ -260,6 +260,7 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
             }
             placeholder="Un lodge écologique au cœur de la forêt d'Andasibe..."
             rows={3}
+            required
           />
         </div>
 

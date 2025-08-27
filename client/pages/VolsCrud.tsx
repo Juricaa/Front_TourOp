@@ -430,12 +430,12 @@ export default function VolsCrud() {
                         {vol.seats.available}/{vol.seats.total} places
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    {/* <div className="flex items-center gap-1">
                       {renderStars(vol.rating)}
                       <span className="text-xs text-muted-foreground ml-1">
                         ({vol.reviews})
                       </span>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-sky-800">
                     

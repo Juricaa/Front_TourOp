@@ -334,15 +334,15 @@ export default function GestionHebergement() {
                       {hebergement.name}
                     </CardTitle>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs bg-yellow-200 text-yellow-800">
                         {hebergement.type}
                       </Badge>
-                      <div className="flex items-center gap-1">
+                      {/* <div className="flex items-center gap-1">
                         {renderStars(hebergement.rating)}
                         <span className="text-xs text-muted-foreground ml-1">
                           ({hebergement.rating})
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <DropdownMenu>
@@ -593,7 +593,7 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
               required
             />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="rating">Note (1-5)</Label>
             <Input
               id="rating"
@@ -610,11 +610,8 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
               }
               required
             />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+          </div> */}
+            <div className="space-y-2">
             <Label htmlFor="phone">Téléphone</Label>
             <Input
               id="phone"
@@ -626,6 +623,10 @@ const HebergementForm: React.FC<HebergementFormProps> = ({
               required
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+        
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
