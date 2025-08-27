@@ -65,59 +65,113 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const savedAccessToken = localStorage.getItem('accessToken');
-    const expiry = sessionStorage.getItem('sessionExpiry');
+  let inactivityTimer: NodeJS.Timeout | null = null;
 
-    if (expiry && Date.now() > Number(expiry)) {
-      logout();
-      return;
+  // Durée d'inactivité avant expiration (3 heures)
+  const INACTIVITY_LIMIT = 3 *60 * 60 * 1000; // 3 heures en millisecondes
+
+  // Fonction pour réinitialiser le minuteur d'inactivité
+  const resetInactivityTimer = () => {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
     }
+
+    // Définir un nouveau minuteur
+    inactivityTimer = setTimeout(() => {
+      handleSessionExpiry();
+    }, INACTIVITY_LIMIT);
+  };
+
+  // Fonction pour gérer l'expiration de la session
+  const handleSessionExpiry = () => {
+    toast({
+      title: "Session Expirée",
+      description: "Votre session a expiré après 3 heures d'inactivité. Veuillez vous reconnecter.",
+      variant: "destructive",
+    });
+
+    logout();
+  };
+
+  // Ajouter des écouteurs d'événements pour détecter l'activité de l'utilisateur
+  useEffect(() => {
+    if (isAuthenticated) {
+      const activityEvents = ["click", "mousemove", "keydown", "scroll", "touchstart"];
+
+      // Réinitialiser le minuteur à chaque activité
+      activityEvents.forEach((event) => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+
+      // Démarrer le minuteur d'inactivité
+      resetInactivityTimer();
+
+      // Nettoyer les écouteurs d'événements lors du démontage
+      return () => {
+        activityEvents.forEach((event) => {
+          window.removeEventListener(event, resetInactivityTimer);
+        });
+
+        if (inactivityTimer) {
+          clearTimeout(inactivityTimer);
+        }
+      };
+    }
+  }, [isAuthenticated]);
+
+  // useEffect(() => {
+  //   const savedUser = localStorage.getItem('user');
+  //   const savedAccessToken = localStorage.getItem('accessToken');
+  //   const expiry = sessionStorage.getItem('sessionExpiry');
+
+  //   if (expiry && Date.now() > Number(expiry)) {
+  //     logout();
+  //     return;
+  //   }
   
-    if (savedUser && savedAccessToken) {
-      try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-      } catch {
-        localStorage.clear();
-      }
-    }
-  }, []);
+  //   if (savedUser && savedAccessToken) {
+  //     try {
+  //       const userData = JSON.parse(savedUser);
+  //       setUser(userData);
+  //       setIsAuthenticated(true);
+  //     } catch {
+  //       localStorage.clear();
+  //     }
+  //   }
+  // }, []);
 
   // Session expiry timer
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  // useEffect(() => {
+  //   if (!isAuthenticated) return;
 
-    const checkSessionExpiry = () => {
-      const expiry = sessionStorage.getItem('sessionExpiry');
-      if (expiry && Date.now() > Number(expiry)) {
-        // Session expired - trigger logout with toast
+  //   const checkSessionExpiry = () => {
+  //     const expiry = sessionStorage.getItem('sessionExpiry');
+  //     if (expiry && Date.now() > Number(expiry)) {
+  //       // Session expired - trigger logout with toast
         
         
-        toast({
-          title: "Session Expirée",
-          description: "Votre session a expiré. Veuillez vous reconnecter.",
-          variant: "destructive",
-        });
+  //       toast({
+  //         title: "Session Expirée",
+  //         description: "Votre session a expiré. Veuillez vous reconnecter.",
+  //         variant: "destructive",
+  //       });
         
-        // Perform logout without page reload
-        setUser(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem("user");
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        sessionStorage.removeItem('sessionExpiry');
-      }
-    };
+  //       // Perform logout without page reload
+  //       setUser(null);
+  //       setIsAuthenticated(false);
+  //       localStorage.removeItem("user");
+  //       localStorage.removeItem("accessToken");
+  //       localStorage.removeItem("refreshToken");
+  //       sessionStorage.removeItem('sessionExpiry');
+  //     }
+  //   };
 
-    // Check immediately and then every 30 seconds
-    checkSessionExpiry();
-    const interval = setInterval(checkSessionExpiry, 30000);
+  //   // Check immediately and then every 30 seconds
+  //   checkSessionExpiry();
+  //   const interval = setInterval(checkSessionExpiry, 30000);
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  //   return () => clearInterval(interval);
+  // }, [isAuthenticated]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -144,8 +198,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       setIsAuthenticated(true);
       
-      const expiryTime = Date.now() +  120 * 60 * 1000;
-      sessionStorage.setItem('sessionExpiry', expiryTime.toString());
+      // const expiryTime = Date.now() +  120 * 60 * 1000;
+      // sessionStorage.setItem('sessionExpiry', expiryTime.toString());
   
       return true;
     } catch (error) {
