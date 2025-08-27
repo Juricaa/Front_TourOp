@@ -88,7 +88,7 @@ export default function Reservations() {
 
       if (response.success && response.data) {
         setReservations(response.data);
-        console.log(reservations);
+        // console.log(reservations);
       }
     } catch (error) {
       console.error("Error fetching reservations:", error);

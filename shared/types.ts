@@ -267,6 +267,7 @@ export interface SingleReservation {
     name: string;
     location: string;
     capacity: string
+    phone: string
   }[];
 
   voitures: {
@@ -280,6 +281,9 @@ export interface SingleReservation {
     model: string;
     pricePerDay: number;
     vehicleType: string;
+    driverIncluded: boolean,
+    driverName:string,
+    driverPhone:number
   }[];
 
   activites: {

@@ -822,12 +822,12 @@ export default function AccommodationStep() {
                             {hebergement.name}
                           </h4>
                           <Badge variant="outline">{hebergement.type}</Badge>
-                          <div className="flex items-center gap-1">
+                          {/* <div className="flex items-center gap-1">
                             {renderStars(hebergement.rating)}
                             <span className="text-xs text-muted-foreground ml-1">
                               ({hebergement.rating})
                             </span>
-                          </div>
+                          </div> */}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                           <MapPin className="w-3 h-3" />

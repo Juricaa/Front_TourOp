@@ -21,6 +21,7 @@ interface TravelPlan {
     passengers: number;
     date_debut: Date;
     date_fin: Date;
+    class: string;
   }[];
   hebergements?: {
     name: string;
@@ -29,6 +30,8 @@ interface TravelPlan {
     checkOut: Date;
     guests: number;
     capacity: number;
+    phone: string;
+    form: string;
   }[];
   voitures?: {
     brand: string;
@@ -39,6 +42,9 @@ interface TravelPlan {
     endDate: Date;
     vehicleType: string;
     price: number;
+    driverIncluded: boolean,
+    driverName:string,
+    driverPhone:number
   }[];
   activites?: {
     name: string;
@@ -46,6 +52,9 @@ interface TravelPlan {
     date: Date;
     participants: number;
     duration: string;
+    guideRequired: boolean,
+    guideName: string,
+    guidePhone: number
   }[];
 }
 
@@ -128,97 +137,128 @@ export const TravelPlanView = ({ plan }: { plan: TravelPlan }) => {
               </p>            </div>
   
           <div class="item-section">
-            <h2>✈️ Vols</h2>
-            ${plan.vols?.map((vol, index) => `
-              <div class="item-card">
-                <div class="item-title">
-                 
-                 ${index + 1}. ${vol.airline}
-                </div>
-                <div class="item-content">
-                  <div class="route">
-                    ${vol.departure} 
-                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                    ${vol.arrival}
-                  </div>
-                  <div class="details">
-                    ${vol.passengers} passager(s) . Depart le ${new Date(vol.date_debut).toLocaleDateString("fr-FR")} - retour : ${new Date(vol.date_fin).toLocaleDateString("fr-FR")}
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
+  <h2>✈️ Vols</h2>
+  ${plan.vols?.map((vol, index) => `
+    <div class="item-card">
+      <div class="item-title">
+        ${index + 1}. ${vol.airline} (${vol.class})
+      </div>
+      <div class="item-content">
+        <div class="route">
+          🛫 ${vol.departure} 
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          🛬 ${vol.arrival}
+        </div>
+        <div class="details">
+          👥 ${vol.passengers} passager(s)
+        </div>
+        <div class="details">
+          📅 Départ : ${new Date(vol.date_debut).toLocaleDateString("fr-FR")}  
+          • Retour : ${new Date(vol.date_fin).toLocaleDateString("fr-FR")}
+        </div>
+      </div>
+    </div>
+  `).join('')}
+</div>
+
   
           <div class="item-section">
-            <h2>🏡Hébergements</h2>
-            ${plan.hebergements?.map((hebergement, index) => `
-              <div class="item-card">
-                <div class="item-title">
-                 
-                  ${index + 1}. ${hebergement.name}
-                </div>
-                <div class="item-content">
-                  <div class="route">
-                    ${new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} → ${new Date(hebergement.checkOut).toLocaleDateString("fr-FR")}
-                  </div>
-                  <div class="details">
-                    ${hebergement.location} • Capacité: ${hebergement.capacity} personne(s)
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
+  <h2>🏡 Hébergements</h2>
+  ${plan.hebergements?.map((hebergement, index) => `
+    <div class="item-card">
+      <div class="item-title">
+        ${index + 1}. ${hebergement.name} (${hebergement.form})
+      </div>
+      <div class="item-content">
+        <div class="route">
+          🛎️ Check-in : ${new Date(hebergement.checkIn).toLocaleDateString("fr-FR")} 
+          → 🏁 Check-out : ${new Date(hebergement.checkOut).toLocaleDateString("fr-FR")}
+        </div>
+        <div class="details">
+          📍 ${hebergement.location} 
+        </div>
+        <div class="details">
+          📞 ${hebergement.phone}
+        </div>
+        <div class="details">
+          🛏️ Capacité : ${hebergement.capacity} personne(s)
+        </div>
+      </div>
+    </div>
+  `).join('')}
+</div>
+
   
           ${plan.voitures?.length > 0 ? `
-          <div class="item-section">
-            <h2>🚐Locations de voiture</h2>
-            ${plan.voitures?.map((voiture, index) => `
-              <div class="item-card">
-                <div class="item-title">
-                  ${index + 1}. ${voiture.brand} ${voiture.model}
-                </div>
-                <div class="item-content">
-                  <div class="route">
-                    ${new Date(voiture.startDate).toLocaleDateString("fr-FR")} → ${new Date(voiture.endDate).toLocaleDateString("fr-FR")}
+            <div class="item-section">
+              <h2>🚐 Locations de voiture</h2>
+              ${plan.voitures?.map((voiture, index) => `
+                <div class="item-card">
+                  <div class="item-title">
+                    ${index + 1}. ${voiture.brand} ${voiture.model}
                   </div>
-                  <div class="details">
-                    ${voiture.vehicleType} • ${voiture.pickupLocation} → ${voiture.dropoffLocation}
+                  <div class="item-content">
+                    <div class="route">
+                      ${new Date(voiture.startDate).toLocaleDateString("fr-FR")} → ${new Date(voiture.endDate).toLocaleDateString("fr-FR")}
+                    </div>
+                    <div class="details">
+                      ${voiture.vehicleType} • ${voiture.pickupLocation} → ${voiture.dropoffLocation}
+                    </div>
+          
+                    ${voiture.driverIncluded ? `
+                      <div class="driver-info">
+                        👨‍✈️ Chauffeur : ${voiture.driverName}
+                        📞 ${voiture.driverPhone}
+                      </div>
+                    ` : ''}
+          
                   </div>
                 </div>
-              </div>
-            `).join('')}
-          </div>
+              `).join('')}
+            </div>
           ` : ''}
+          
   
           ${plan.activites?.length > 0 ? `
-          <div class="item-section">
-            <h2>Activités</h2>
-            ${plan.activites?.map((activite, index) => `
-              <div class="item-card">
-                <div class="item-title">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  ${index + 1}. ${activite.name}
+            <div class="item-section">
+              <h2>🎯 Activités</h2>
+              ${plan.activites?.map((activite, index) => `
+                <div class="item-card">
+                  <div class="item-title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    ${index + 1}. ${activite.name}
+                  </div>
+                  <div class="item-content">
+                    <div class="route">
+                      ${new Date(activite.date).toLocaleDateString("fr-FR")}
+                    </div>
+                    <div class="details">
+                      Catégorie: ${activite.category} • ${activite.participants} participant(s)
+                    </div>
+                    <div class="details">
+                      Durée: ${activite.duration} 
+                    </div>
+          
+                    ${activite.guideRequired ? `
+                      <div class="guide-info">
+                        🧑‍🏫 Guide : ${activite.guideName}
+                        📞 ${activite.guidePhone}
+                      </div>
+                    ` : ''}
+          
+                  </div>
                 </div>
-                <div class="item-content">
-                  <div class="route">
-                    ${new Date(activite.date).toLocaleDateString("fr-FR")}
-                  </div>
-                  <div class="details">
-                    Catégorie: ${activite.category} • ${activite.participants} participant(s)
-                  </div>
-                  <div class="details">
-                    Durée: ${activite.duration} 
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
+              `).join('')}
+            </div>
           ` : ''}
+          
         </body>
       </html>
     `;

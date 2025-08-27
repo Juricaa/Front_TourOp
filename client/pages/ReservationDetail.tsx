@@ -119,11 +119,11 @@ export default function ReservationDetail() {
         if (reservationId) {
           fetchClient(reservationId);
         }
-        console.log("donnée vierge:", data.data)
+        // console.log("donnée vierge:"!, data.data)
         
         const aggregatedReservation = transformBackendDataToReservation(data.data, reservationId );
         setReservation(aggregatedReservation);
-        console.log("data traité:", aggregatedReservation)
+        // console.log("data traité:", aggregatedReservation)
       } else {
         setError("Réservation non trouvée");
       }
@@ -202,7 +202,9 @@ export default function ReservationDetail() {
             price: price,
             name: item.item.name,
             location: item.item.location,
-            capacity: item.item.capacity
+            capacity: item.item.capacity,
+            phone: item.item.phone,
+            form : item.item.form,
           });
           break;
 
@@ -217,7 +219,10 @@ export default function ReservationDetail() {
             brand: item.item.brand,
             model: item.item.model,
             pricePerDay: parseFloat(item.item.pricePerDay),
-            vehicleType: item.item.vehicleType
+            vehicleType: item.item.vehicleType,
+            driverIncluded: item.item.driverIncluded,
+            driverName: item.item.driverName,
+            driverPhone : item.item.driverPhone,
           });
           break;
 
@@ -230,7 +235,10 @@ export default function ReservationDetail() {
             name: item.item.name,
             category: item.item.category,
             priceAdult: parseFloat(item.item.priceAdult),
-            duration: item.item.duration
+            duration: item.item.duration,
+            guideRequired: item.item.guideRequired,
+            guideName: item.item.guideName,
+            guidePhone: item.item.guidePhone,
           });
           break;
 
@@ -245,6 +253,7 @@ export default function ReservationDetail() {
             arrival: item.lieu_arrivee,
             startDate: startDate,
             endDate: endDate,
+            class: item.item.classType,
           });
           break;
       }
@@ -454,6 +463,7 @@ export default function ReservationDetail() {
         passengers: vol.passengers,
         date_debut : vol.startDate,
         date_fin : vol.endDate,
+        class: vol.class,
       })),
       hebergements: reservation.hebergements?.map(heb => ({
         name: heb.name,
@@ -461,7 +471,9 @@ export default function ReservationDetail() {
         checkIn: heb.checkIn,
         checkOut: heb.checkOut,
         guests: heb.guests,
-        capacity: heb.capacity
+        capacity: heb.capacity,
+        phone: heb.phone,
+        form : heb.form,
       })),
       voitures: reservation.voitures?.map(voiture => ({
         brand: voiture.brand,
@@ -471,12 +483,19 @@ export default function ReservationDetail() {
         startDate: voiture.startDate,
         endDate: voiture.endDate,
         vehicleType: voiture.vehicleType,
+        driverIncluded: voiture.driverIncluded,
+        driverName:voiture.driverName,
+        driverPhone:voiture.driverPhone
       })),
       activites: reservation.activites?.map(act => ({
         name: act.name,
         date: act.date,
         participants: act.participants,
         duration:act.duration,
+        guideRequired: act.guideRequired,
+        guideName: act.guideName,
+        guidePhone: act.guidePhone,
+        category: act.category,
       
       }))
     };
