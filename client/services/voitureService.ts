@@ -77,8 +77,9 @@ class VoitureService {
     try {
       // 1. Construire l'URL
       const now = new Date();
+      console.log("data envoyé:", voitureData);
       const url = `${API_BASE_URL}/voitures/${id}/`;
-  console.log("data envoyé:", voitureData);
+  
       // 2. Préparer les données au format attendu par le backend Django
       const requestData = {
         idVoiture: id, // Clé primaire

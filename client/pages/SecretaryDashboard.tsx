@@ -18,12 +18,13 @@ import {
   Bell,
   AlertTriangle,
   Clock,
- 
 } from "lucide-react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { factureService } from "@/services/factureService";
 import { S } from "vitest/dist/chunks/config.d.UqE-KR0o.js";
+import { voitureService } from "@/services/voitureService";
+import { API_BASE_URL } from "@/services/apiConfig";
 
 interface Reservation {
   id: string;
@@ -65,6 +66,36 @@ interface Notification {
   total: number;
   paymentStatus: string
 }
+
+const fetchReservedCars = async (reservationId: string, date_debut?: string, date_fin?: string) => {
+  try {
+    // Construire l'URL avec les paramètres nécessaires
+    const url = new URL(`${API_BASE_URL}/reservations/client/${reservationId}/`);
+    if (date_debut) url.searchParams.append('date_debut', date_debut);
+    if (date_fin) url.searchParams.append('date_fin', date_fin);
+
+    // Appeler l'API
+    const response = await fetch(url.toString());
+    const data = await response.json();
+
+    // Vérifier si la réponse est valide
+    if (response.ok && data.success) {
+     
+
+      // Filtrer les données pour ne garder que les voitures
+      const reservedCars = data.data.filter((item: any) => item.item.type === "voiture");
+
+      
+      return reservedCars;
+    } else {
+      console.error("Erreur lors de la récupération des réservations :", data.message);
+      return [];
+    }
+  } catch (error) {
+    console.error("Erreur réseau :", error);
+    return [];
+  }
+};
 
 export default function SecretaryDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -130,7 +161,6 @@ export default function SecretaryDashboard() {
             paymentStatus: item.paymentStatus,
             total: item.totalPrice,
             date_created: item.dateCreated,
-            
           }));
 
           // Calculer les destinations populaires
@@ -167,8 +197,7 @@ export default function SecretaryDashboard() {
               try {
                 // Mettre à jour le statut via l'API
                 const updateResponse = await factureService.updateFacture(reservation.id, {
-                 
-                  status : "en_cours",
+                  status: "en_cours",
                   clientId: reservation.clientId
                 });
 
@@ -176,20 +205,19 @@ export default function SecretaryDashboard() {
                   updatedReservations.push(reservation.id);
                   // Mettre à jour le statut localement
                   reservation.status = "en_cours";
-
                 }
               } catch (error) {
                 console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
               }
             }
-           
+
             // Si la date de retour est passée ou égale à aujourd'hui et que le statut n'est pas "payé"
             if (dateReturn <= today && reservation.status !== "terminé") {
               try {
                 // Mettre à jour le statut via l'API
                 const updateResponse = await factureService.updateFacture(reservation.id, {
                   paymentStatus: "payé",
-                  status : "terminé",
+                  status: "terminé",
                   clientId: reservation.clientId
                 });
 
@@ -198,8 +226,32 @@ export default function SecretaryDashboard() {
                   // Mettre à jour le statut localement
                   reservation.status = "terminé";
 
-                }
-              } catch (error) {
+                  try {
+                    
+                    const cars = await fetchReservedCars(reservation.clientId, new Date(reservation.dateTravel).toISOString().split('T')[0], new Date(reservation.dateReturn).toISOString().split('T')[0] );
+                    console.log("Voitures réservées pour le client :", cars);
+                
+                    // Exemple : Mettre à jour la disponibilité des voitures
+                    cars.forEach(async (car: any) => {
+                      try {
+                        await voitureService.updateVoiture(car.item.id, {
+                          availability: "available",
+                          description: car.item.description || ""  
+                        });
+                        console.log(`Disponibilité mise à jour pour la voiture ${car.item.id}`);
+                      } catch (error) {
+                        console.error(`Erreur lors de la mise à jour de la voiture ${car.item.id} :`, error);
+                      }
+                    });
+                  } catch (error) {
+                    console.error("Erreur lors de la récupération des voitures réservées :", error);
+                  }
+
+
+
+
+                    
+                }              } catch (error) {
                 console.error(`Erreur lors de la mise à jour de la réservation ${reservation.id}:`, error);
               }
             }
@@ -226,7 +278,6 @@ export default function SecretaryDashboard() {
                 status: reservation.status,
                 total: reservation.totalPrice,
                 date_created: reservation.dateCreated,
-                
               });
             }
           }
@@ -340,14 +391,13 @@ export default function SecretaryDashboard() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        console.log(notification)
                         navigate(`/reservations/${notification.clientId}`, {
                           state: {
                             date_debut: new Date(notification.dateTravel).toISOString().split('T')[0],
                             date_fin: new Date(notification.dateReturn).toISOString().split('T')[0],
                             date_created: new Date(notification.date_created).toISOString().split('T')[0],
                             factureId: notification.id,
-                            total : notification.total,
+                            total: notification.total,
                             status: notification.status,
                           },
                         });
@@ -467,12 +517,12 @@ export default function SecretaryDashboard() {
                 </div>
               ))}
             </div>
-            <Button variant="outline" asChild className="w-full mt-4" size="sm">
+            {/* <Button variant="outline" asChild className="w-full mt-4" size="sm">
               <Link to="/destinations">
                 <Globe className="h-4 w-4 mr-2" />
                 Voir toutes les destinations
               </Link>
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
       </div>

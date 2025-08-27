@@ -63,13 +63,9 @@ const paymentStatusOptions = [
     label: "En attente",
     color: "bg-yellow-100 text-yellow-800",
   },
-  {
-    value: "partial",
-    label: "Partiel",
-    color: "bg-orange-100 text-orange-800",
-  },
+  
   { value: "payé", label: "Payé", color: "bg-green-100 text-green-800" },
-  { value: "remboursé", label: "Remboursé", color: "bg-gray-100 text-gray-800" },
+ 
 ];
 
 export default function EditReservationComplete() {
@@ -518,15 +514,15 @@ export default function EditReservationComplete() {
               setActiveTab(value);
             }
           }} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="quick" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Édition rapide
               </TabsTrigger>
-              <TabsTrigger value="full" className="flex items-center gap-2">
+              {/* <TabsTrigger value="full" className="flex items-center gap-2">
                 <Edit3 className="w-4 h-4" />
                 Éditeur complet
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
 
             {/* Quick Edit Tab */}

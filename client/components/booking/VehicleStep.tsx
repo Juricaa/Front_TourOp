@@ -35,6 +35,7 @@ import { useVehicleBooking } from "@/hooks/useVehicleBooking";
 import type { Voiture } from "@shared/types";
 import type { BookingVehicle } from "@shared/booking";
 import { reservationService } from "@/services/reservationService";
+import axios from "axios"; // Import axios
 import { validateVehicleDatesAgainstTravel } from "@/lib/enhancedDateValidation";
 import { API_BASE_URL } from "@/services/apiConfig";
 
@@ -196,6 +197,10 @@ export default function VehicleStep() {
     });
 
     if (result.success) {
+      try { await voitureService.updateVoiture(voiture.idVoiture, {
+        availability: "unavailable",
+        description: voiture.description || ""  
+      });} catch (error) { console.error("Erreur lors de la mise à jour de la disponibilité du véhicule :", error); }
       toast({
         title: "Véhicule ajouté",
         description: "Le véhicule a été ajouté avec succès.",

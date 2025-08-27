@@ -121,6 +121,17 @@ export default function Reservations() {
     }
   };
 
+  const getPaymentStatusColor = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "payé":
+        return "bg-forest-100 text-forest-800 border-forest-200";
+      case "en_attente":
+        return "bg-sunset-100 text-sunset-800 border-sunset-200";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
   const getStatusText = (status: string) => {
     switch (status) {
       case "confirmé":
@@ -133,6 +144,17 @@ export default function Reservations() {
         return "Terminée";
       default:
         return status;
+    }
+  };
+
+  const getPaymentStatusText = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "payé":
+        return "Payé";
+      case "en_attente":
+        return "En attente";
+      default:
+        return paymentStatus;
     }
   };
 
@@ -386,9 +408,9 @@ export default function Reservations() {
                   <TableHead>Réservation</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Destination</TableHead>
-                  <TableHead>Dates</TableHead>
-
-                  <TableHead>Statut</TableHead>
+                  <TableHead>Dates </TableHead>
+                  <TableHead>Statut de paiement</TableHead>
+                  <TableHead>Statut de réservation</TableHead>
                   <TableHead className="text-right">Montant</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -457,7 +479,14 @@ export default function Reservations() {
                         )}
                       </div>
                     </TableCell>
-
+                    <TableCell>
+          <Badge
+            variant="outline"
+            className={getPaymentStatusColor(reservation.paymentStatus)}
+          >
+            {getPaymentStatusText(reservation.paymentStatus)}
+          </Badge>
+        </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
