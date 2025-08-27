@@ -451,7 +451,7 @@ export default function SecretaryDashboard() {
             <CardTitle>Destinations Populaires</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-80 overflow-y-auto">
               {stats.popularDestinations.map((destination) => (
                 <div
                   key={destination.name}

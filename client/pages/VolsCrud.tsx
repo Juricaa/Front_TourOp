@@ -99,6 +99,14 @@ const classLabels = {
   first: "Première",
 };
 
+const formatDateTime = (dateTime: string) => {
+  const date = new Date(dateTime);
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+};
+
 export default function VolsCrud() {
   const [vols, setVols] = useState<Vol[]>([]);
   const [loading, setLoading] = useState(true);
@@ -406,12 +414,12 @@ export default function VolsCrud() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{vol.schedule.departure}</span>
+                      <span>{formatDateTime(vol.schedule.departure)}</span>
                     </div>
                     <span>→</span>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{vol.schedule.arrival}</span>
+                      <span>{formatDateTime(vol.schedule.arrival)}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm">

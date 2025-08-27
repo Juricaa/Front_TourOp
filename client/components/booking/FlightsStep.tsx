@@ -92,7 +92,13 @@ export default function FlightsStep() {
     const day = date.getDate().toString().padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-
+  const formatDateTime = (dateTime: string) => {
+    const date = new Date(dateTime);
+    return new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(date);
+  };
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("Tous");
@@ -834,9 +840,9 @@ console.log("Creating izy with data:", data);
                           <span>•</span>
                           <span className="capitalize">{vol.class}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Départ: {vol.schedule.departure} - Arrivée: {vol.schedule.arrival}
-                        </p>
+                        {/* <p className="text-sm text-muted-foreground">
+                          Départ: {formatDateTime(vol.schedule.departure)} - Arrivée: {vol.schedule.arrival}
+                        </p> */}
                       </div>
                     </div>
 

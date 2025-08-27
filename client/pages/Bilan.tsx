@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   TrendingUp,
   TrendingDown,
@@ -19,7 +20,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-
+import * as XLSX from 'xlsx';
 import {
   ResponsiveContainer,
   LineChart as RLineChart,
@@ -39,7 +40,7 @@ interface RevenueData {
   daily: { date: string; revenue: number }[];
   monthly: { month: string; revenue: number }[];
   yearly: { year: number; revenue: number }[];
-  hourly: { hour: string; revenue: number }[]; // Nouveau: données horaires
+  hourly: { hour: string; revenue: number }[];
   totalRevenue: number;
   averageMonthly: number;
   averageDaily: number;
@@ -48,9 +49,12 @@ interface RevenueData {
 
 export default function Bilan() {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
+  const [filteredRevenueData, setFilteredRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<'hour' | 'day' | 'month' | 'year'>('hour'); // Ajout de 'hour'
-  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
+  const [timeFilter, setTimeFilter] = useState<'hour' | 'day' | 'month' | 'year'>('day');
+  const [chartType, setChartType] = useState<'bar' | 'line'>('line');
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -63,7 +67,7 @@ export default function Bilan() {
         const dailyRevenueData = calculateDailyRevenue(factures);
         const monthlyRevenueData = calculateMonthlyRevenue(factures);
         const yearlyRevenueData = calculateYearlyRevenue(factures);
-        const hourlyRevenueData = calculateHourlyRevenue(factures); // Nouveau: calcul des données horaires
+        const hourlyRevenueData = calculateHourlyRevenue(factures);
 
         // Revenu total
         const totalRevenue = factures.reduce((sum, facture) => {
@@ -87,7 +91,7 @@ export default function Bilan() {
           daily: dailyRevenueData,
           monthly: monthlyRevenueData,
           yearly: yearlyRevenueData,
-          hourly: hourlyRevenueData, // Ajout des données horaires
+          hourly: hourlyRevenueData,
           totalRevenue,
           averageMonthly,
           averageDaily,
@@ -95,6 +99,7 @@ export default function Bilan() {
         };
 
         setRevenueData(revenueStats);
+        setFilteredRevenueData(revenueStats);
       } catch (error) {
         console.error("Erreur lors du chargement des données financières:", error);
       } finally {
@@ -158,8 +163,7 @@ export default function Bilan() {
 
       return Object.entries(dailyData)
         .map(([date, revenue]) => ({ date, revenue }))
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-30);
+        .sort((a, b) => a.date.localeCompare(b.date));
     };
 
     const calculateMonthlyRevenue = (factures: any[]) => {
@@ -243,6 +247,93 @@ export default function Bilan() {
     fetchRevenueData();
   }, []);
 
+  // Filtrer les données en fonction des dates sélectionnées
+  useEffect(() => {
+    if (!revenueData) return;
+
+    const filterDataByDateRange = () => {
+      let filteredDaily = [...revenueData.daily];
+      let filteredMonthly = [...revenueData.monthly];
+      let filteredYearly = [...revenueData.yearly];
+      let filteredHourly = [...revenueData.hourly];
+
+      // Filtrer les données journalières
+      if (startDate) {
+        filteredDaily = filteredDaily.filter(item => item.date >= startDate);
+      }
+      if (endDate) {
+        filteredDaily = filteredDaily.filter(item => item.date <= endDate);
+      }
+
+      // Filtrer les données mensuelles
+      if (startDate) {
+        const startYearMonth = startDate.substring(0, 7);
+        filteredMonthly = filteredMonthly.filter(item => {
+          const itemDate = new Date(item.month);
+          const itemYearMonth = itemDate.getFullYear() + '-' + String(itemDate.getMonth() + 1).padStart(2, '0');
+          return itemYearMonth >= startYearMonth;
+        });
+      }
+      if (endDate) {
+        const endYearMonth = endDate.substring(0, 7);
+        filteredMonthly = filteredMonthly.filter(item => {
+          const itemDate = new Date(item.month);
+          const itemYearMonth = itemDate.getFullYear() + '-' + String(itemDate.getMonth() + 1).padStart(2, '0');
+          return itemYearMonth <= endYearMonth;
+        });
+      }
+
+      // Filtrer les données annuelles
+      if (startDate) {
+        const startYear = parseInt(startDate.substring(0, 4));
+        filteredYearly = filteredYearly.filter(item => item.year >= startYear);
+      }
+      if (endDate) {
+        const endYear = parseInt(endDate.substring(0, 4));
+        filteredYearly = filteredYearly.filter(item => item.year <= endYear);
+      }
+
+      // Calculer le total des revenus filtrés
+      const totalRevenue = filteredDaily.reduce((sum, item) => sum + item.revenue, 0);
+
+      // Calculer les moyennes filtrées
+      const averageMonthly = filteredMonthly.length > 0
+        ? filteredMonthly.reduce((sum, item) => sum + item.revenue, 0) / filteredMonthly.length
+        : 0;
+
+      const averageDaily = filteredDaily.length > 0
+        ? filteredDaily.reduce((sum, item) => sum + item.revenue, 0) / filteredDaily.length
+        : 0;
+
+      // Calculer le taux de croissance
+      const growthRate = calculateGrowthRate(filteredMonthly);
+
+      setFilteredRevenueData({
+        daily: filteredDaily,
+        monthly: filteredMonthly,
+        yearly: filteredYearly,
+        hourly: filteredHourly,
+        totalRevenue,
+        averageMonthly,
+        averageDaily,
+        growthRate,
+      });
+    };
+
+    filterDataByDateRange();
+  }, [revenueData, startDate, endDate]);
+
+  const calculateGrowthRate = (monthlyData: { month: string; revenue: number }[]) => {
+    if (monthlyData.length < 2) return 0;
+
+    const currentMonth = monthlyData[monthlyData.length - 1].revenue;
+    const previousMonth = monthlyData[monthlyData.length - 2].revenue;
+
+    if (previousMonth === 0) return 0;
+
+    return ((currentMonth - previousMonth) / previousMonth) * 100;
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -263,7 +354,7 @@ export default function Bilan() {
     );
   }
 
-  if (!revenueData) {
+  if (!revenueData || !filteredRevenueData) {
     return (
       <div className="p-6">
         <div className="text-center text-muted-foreground">
@@ -276,27 +367,27 @@ export default function Bilan() {
   const getChartData = () => {
     switch (timeFilter) {
       case 'hour':
-        return revenueData.hourly.map(item => ({
+        return filteredRevenueData.hourly.map(item => ({
           label: item.hour,
           revenue: item.revenue
         }));
       case 'day':
-        return revenueData.daily.slice(-7).map(item => ({
+        return filteredRevenueData.daily.slice(-7).map(item => ({
           label: item.date,
           revenue: item.revenue
         }));
       case 'month':
-        return revenueData.monthly.slice(-12).map(item => ({
+        return filteredRevenueData.monthly.slice(-12).map(item => ({
           label: item.month,
           revenue: item.revenue
         }));
       case 'year':
-        return revenueData.yearly.map(item => ({
+        return filteredRevenueData.yearly.map(item => ({
           label: item.year.toString(),
           revenue: item.revenue
         }));
       default:
-        return revenueData.hourly.map(item => ({
+        return filteredRevenueData.hourly.map(item => ({
           label: item.hour,
           revenue: item.revenue
         }));
@@ -329,6 +420,70 @@ export default function Bilan() {
 
   const yAxisSteps = calculateYAxisSteps(maxRevenue);
 
+  const exportToExcel = () => {
+    if (!filteredRevenueData) return;
+  
+    // Préparer les données pour l'export
+    const workbook = XLSX.utils.book_new();
+    
+    // Feuille pour les données journalières
+    const dailyData = filteredRevenueData.daily.map(item => ({
+      Date: item.date,
+      Revenu: item.revenue,
+      'Revenu (Ar)': `${item.revenue.toLocaleString()} Ar`
+    }));
+    
+    const dailyWorksheet = XLSX.utils.json_to_sheet(dailyData);
+    XLSX.utils.book_append_sheet(workbook, dailyWorksheet, 'Revenus Journaliers');
+    
+    // Feuille pour les données mensuelles
+    const monthlyData = filteredRevenueData.monthly.map(item => ({
+      Mois: item.month,
+      Revenu: item.revenue,
+      'Revenu (Ar)': `${item.revenue.toLocaleString()} Ar`
+    }));
+    
+    const monthlyWorksheet = XLSX.utils.json_to_sheet(monthlyData);
+    XLSX.utils.book_append_sheet(workbook, monthlyWorksheet, 'Revenus Mensuels');
+    
+    // Feuille pour les données annuelles
+    const yearlyData = filteredRevenueData.yearly.map(item => ({
+      Année: item.year,
+      Revenu: item.revenue,
+      'Revenu (Ar)': `${item.revenue.toLocaleString()} Ar`
+    }));
+    
+    const yearlyWorksheet = XLSX.utils.json_to_sheet(yearlyData);
+    XLSX.utils.book_append_sheet(workbook, yearlyWorksheet, 'Revenus Annuels');
+    
+    // Feuille pour les données horaires
+    const hourlyData = filteredRevenueData.hourly.map(item => ({
+      Heure: item.hour,
+      Revenu: item.revenue,
+      'Revenu (Ar)': `${item.revenue.toLocaleString()} Ar`
+    }));
+    
+    const hourlyWorksheet = XLSX.utils.json_to_sheet(hourlyData);
+    XLSX.utils.book_append_sheet(workbook, hourlyWorksheet, 'Revenus Horaires');
+    
+    // Feuille pour les indicateurs clés
+    const indicatorsData = [
+      { Indicateur: 'Chiffre d\'Affaires Total', Valeur: filteredRevenueData.totalRevenue, 'Valeur (Ar)': `${filteredRevenueData.totalRevenue.toLocaleString()} Ar` },
+      { Indicateur: 'Revenu Mensuel Moyen', Valeur: filteredRevenueData.averageMonthly, 'Valeur (Ar)': `${filteredRevenueData.averageMonthly.toLocaleString()} Ar` },
+      { Indicateur: 'Revenu Journalier Moyen', Valeur: filteredRevenueData.averageDaily, 'Valeur (Ar)': `${filteredRevenueData.averageDaily.toLocaleString()} Ar` },
+      { Indicateur: 'Taux de Croissance', Valeur: `${filteredRevenueData.growthRate.toFixed(1)}%`, 'Valeur (Ar)': `${filteredRevenueData.growthRate.toFixed(1)}%` }
+    ];
+    
+    const indicatorsWorksheet = XLSX.utils.json_to_sheet(indicatorsData);
+    XLSX.utils.book_append_sheet(workbook, indicatorsWorksheet, 'Indicateurs Clés');
+    
+    // Générer le fichier Excel
+    const date = new Date();
+    const dateStr = date.toISOString().split('T')[0];
+    const fileName = `bilan_financier_${dateStr}.xlsx`;
+    
+    XLSX.writeFile(workbook, fileName);
+  };
   return (
     <div className="p-6 space-y-8">
       {/* Header */}
@@ -370,6 +525,47 @@ export default function Bilan() {
         </div>
       </div>
 
+      {/* Filtres de date */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-blue-500" />
+            Filtres de Date
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Date de début</label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Date de fin</label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                }}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Key Financial Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
@@ -386,7 +582,7 @@ export default function Bilan() {
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-emerald-900">
-                {revenueData.totalRevenue.toLocaleString()} Ar
+                {filteredRevenueData.totalRevenue.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-emerald-600">
@@ -411,7 +607,7 @@ export default function Bilan() {
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-blue-900">
-                {revenueData.averageMonthly.toLocaleString()} Ar
+                {filteredRevenueData.averageMonthly.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-blue-600">
@@ -429,7 +625,7 @@ export default function Bilan() {
                 Croissance Mensuelle
               </CardTitle>
               <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                {revenueData.growthRate >= 0 ? (
+                {filteredRevenueData.growthRate >= 0 ? (
                   <TrendingUp className="w-4 h-4 text-white" />
                 ) : (
                   <TrendingDown className="w-4 h-4 text-white" />
@@ -439,16 +635,16 @@ export default function Bilan() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className={`text-2xl font-bold ${revenueData.growthRate >= 0 ? 'text-green-900' : 'text-red-900'}`}>
-                {revenueData.growthRate >= 0 ? '+' : ''}{revenueData.growthRate.toFixed(1)}%
+              <div className={`text-2xl font-bold ${filteredRevenueData.growthRate >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+                {filteredRevenueData.growthRate >= 0 ? '+' : ''}{filteredRevenueData.growthRate.toFixed(1)}%
               </div>
               <div className="flex items-center gap-1">
-                {revenueData.growthRate >= 0 ? (
+                {filteredRevenueData.growthRate >= 0 ? (
                   <ArrowUpRight className="w-4 h-4 text-green-600" />
                 ) : (
                   <ArrowDownRight className="w-4 h-4 text-red-600" />
                 )}
-                <span className={`text-sm ${revenueData.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-sm ${filteredRevenueData.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   vs mois précédent
                 </span>
               </div>
@@ -470,7 +666,7 @@ export default function Bilan() {
           <CardContent>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-teal-900">
-                {revenueData.averageDaily.toLocaleString()} Ar
+                {filteredRevenueData.averageDaily.toLocaleString()} Ar
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-teal-600">
@@ -494,7 +690,7 @@ export default function Bilan() {
                   <SelectValue placeholder="Période" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hour">Horaire</SelectItem>
+                  {/* <SelectItem value="hour">Horaire</SelectItem> */}
                   <SelectItem value="day">Journalier</SelectItem>
                   <SelectItem value="month">Mensuel</SelectItem>
                   <SelectItem value="year">Annuel</SelectItem>
@@ -503,25 +699,22 @@ export default function Bilan() {
             </div>
             <div className="flex items-center gap-2">
               <BarChart className="w-4 h-4 text-muted-foreground" />
-              <Select value={chartType} onValueChange={(value: 'bar' | 'line') => setChartType(value)}>
+              <Select value={chartType} onValueChange={(value: 'line' | 'bar') => setChartType(value)}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bar">Barres</SelectItem>
                   <SelectItem value="line">Ligne</SelectItem>
+                  <SelectItem value="bar">Barres</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={exportToExcel}>
                 <Download className="w-4 h-4 mr-2" />
                 Exporter
               </Button>
-              <Button variant="outline" size="sm">
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimer
-              </Button>
+
             </div>
           </div>
         </div>
@@ -541,15 +734,15 @@ export default function Bilan() {
                   <RBarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="label" />
-                    <YAxis                 
-                    tickFormatter={(value: number) => {
-                      if (value >= 1_000_000) {
-                        return (value / 1_000_000).toFixed(1) + "M";
-                      } else if (value >= 1_000) {
-                        return (value / 1_000).toFixed(1) + "K";
-                      }
-                      return value;
-                    }}
+                    <YAxis
+                      tickFormatter={(value: number) => {
+                        if (value >= 1_000_000) {
+                          return (value / 1_000_000).toFixed(1) + "M";
+                        } else if (value >= 1_000) {
+                          return (value / 1_000).toFixed(1) + "K";
+                        }
+                        return value;
+                      }}
                     />
 
                     <Tooltip formatter={(value: number) => `${value.toLocaleString()} Ar`} />
@@ -560,15 +753,15 @@ export default function Bilan() {
                   <RLineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="label" />
-                    <YAxis 
-                     tickFormatter={(value: number) => {
-                      if (value >= 1_000_000) {
-                        return (value / 1_000_000).toFixed(1) + "M";
-                      } else if (value >= 1_000) {
-                        return (value / 1_000).toFixed(1) + "K";
-                      }
-                      return value;
-                    }}
+                    <YAxis
+                      tickFormatter={(value: number) => {
+                        if (value >= 1_000_000) {
+                          return (value / 1_000_000).toFixed(1) + "M";
+                        } else if (value >= 1_000) {
+                          return (value / 1_000).toFixed(1) + "K";
+                        }
+                        return value;
+                      }}
                     />
                     <Tooltip formatter={(value: number) => `${value.toLocaleString()} Ar`} />
                     {/* <Legend /> */}
@@ -586,23 +779,21 @@ export default function Bilan() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-
-
         </Card>
 
-        {/* Section des bilans détaillés (inchangée) */}
+        {/* Section des bilans détaillés */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bilan Journalier */}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-blue-500" />
-                Bilan Journalier (30 derniers jours)
+                Bilan Journalier
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-80 overflow-y-auto">
-                {revenueData.daily.slice().reverse().map((day, index) => (
+                {filteredRevenueData.daily.slice().reverse().map((day, index) => (
                   <div key={day.date} className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -628,7 +819,7 @@ export default function Bilan() {
                   </div>
                 ))}
               </div>
-              {revenueData.daily.length === 0 && (
+              {filteredRevenueData.daily.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
                   <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune donnée de revenu journalier</p>
@@ -647,7 +838,7 @@ export default function Bilan() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-80 overflow-y-auto">
-                {revenueData.monthly.slice().reverse().map((month, index) => (
+                {filteredRevenueData.monthly.slice().reverse().map((month, index) => (
                   <div key={month.month} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -667,7 +858,7 @@ export default function Bilan() {
                   </div>
                 ))}
               </div>
-              {revenueData.monthly.length === 0 && (
+              {filteredRevenueData.monthly.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
                   <BarChart className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune donnée de revenu mensuel</p>
@@ -686,7 +877,7 @@ export default function Bilan() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-80 overflow-y-auto">
-                {revenueData.yearly.slice().reverse().map((year, index) => (
+                {filteredRevenueData.yearly.slice().reverse().map((year, index) => (
                   <div key={year.year} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
@@ -706,7 +897,7 @@ export default function Bilan() {
                   </div>
                 ))}
               </div>
-              {revenueData.yearly.length === 0 && (
+              {filteredRevenueData.yearly.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
                   <LineChart className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune donnée de revenu annuel</p>
@@ -717,7 +908,7 @@ export default function Bilan() {
         </div>
       </div>
 
-      {/* Summary Section (inchangée) */}
+      {/* Summary Section */}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
