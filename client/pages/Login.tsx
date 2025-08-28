@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,15 +8,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Lock, User, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const [settings, setSettings] = useState<any>(null);
   const { login, isAuthenticated, user } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("app_settings");
+    if (saved) setSettings(JSON.parse(saved));
+  }, []);
 
   // If already authenticated, redirect to role-specific dashboard
   if (isAuthenticated && user) {
@@ -69,7 +75,7 @@ export default function Login() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-madagascar-900">
-              TourOp Madagascar
+            {settings?.companyName ?? "TourOp Madagascar"}
             </h1>
             <p className="text-muted-foreground">
               Connexion à votre espace de gestion

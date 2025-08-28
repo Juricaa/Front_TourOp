@@ -1,5 +1,5 @@
 // export const API_BASE_URL = "/api";
-export const API_BASE_URL = "http://localhost:8000/api"
+export const API_BASE_URL = "http://192.168.10.184:8000/api"
 
 export const apiConfig = {
   baseUrl: API_BASE_URL,

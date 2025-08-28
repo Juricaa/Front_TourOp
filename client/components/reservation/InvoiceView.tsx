@@ -1,4 +1,5 @@
 // components/invoice/InvoiceView.tsx
+import React, { useEffect, useState } from "react";
 import {
   DialogHeader,
   DialogTitle,
@@ -59,6 +60,13 @@ import { fr } from "date-fns/locale";
 import { Button } from "../ui/button";
 
 export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
+  
+  useEffect(() => {
+    const saved = localStorage.getItem("app_settings");
+    if (saved) setSettings(JSON.parse(saved));
+  }, []);
+
+
   const currencySymbol = invoice.currency === 'MGA' ? 'Ar' : invoice.currency === 'EUR' ? '€' : '$';
   // console.log("data facture", invoice);
   const formatPrice = (price: number) => {
@@ -68,6 +76,8 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
     }).format(price);
   };
 
+
+  const [settings, setSettings] = useState<any>(null);
 
   const generateInvoiceDocument = (invoice: Invoice) => {
     const currencySymbol = invoice.currency === 'MGA' ? 'Ar' : invoice.currency === 'EUR' ? '€' : '$';
@@ -207,11 +217,12 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
     
             <div class="grid-container">
               <div class="company-info">
-                <div class="info-title">TourOp Madagascar</div>
+                <div class="info-title">${settings?.companyName ?? "TourOp Madagascar"}</div>
                 <p>
-                  123 Avenue des Baobabs<br/>
-                  101 Antananarivo, Madagascar<br/>
-                  +261 20 12 345 67
+                  
+                  ${settings?.companyAddress ?? "Default Company"}  <br />
+                  ${settings?.companyPhone ?? ""} <br />
+                  ${settings?.companyEmail ?? ""}
                 </p>
               </div>
               <div class="client-info">
@@ -382,13 +393,14 @@ export const InvoiceView: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-2">TourOp Madagascar</h3>
+              <h3 className="font-semibold mb-2">{settings?.companyName ?? "TourOp Madagascar"}</h3>
               <p className="text-sm text-muted-foreground">
-                123 Avenue des Baobabs
+              {settings?.companyAddress ?? "Default Company"}
                 <br />
-                101 Antananarivo, Madagascar
+                Tél : {settings?.companyPhone ?? ""}
                 <br />
-                +261 20 12 345 67
+                
+                Email : {settings?.companyEmail ?? ""}
               </p>
             </div>
             <div className="text-right">

@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -48,11 +50,11 @@ const adminNavigation = [
     icon: DollarSign,
     href: "/bilan",
   },
-  {
-    title: "Destinations",
-    icon: Globe,
-    href: "/destinations",
-  },
+  // {
+  //   title: "Destinations",
+  //   icon: Globe,
+  //   href: "/destinations",
+  // },
   {
     title: "Gestion Utilisateurs",
     icon: UserCheck,
@@ -63,6 +65,12 @@ const adminNavigation = [
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("app_settings");
+    if (saved) setSettings(JSON.parse(saved));
+  }, []);
 
   return (
     <SidebarProvider>
@@ -74,7 +82,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-white">
-                <h1 className="text-lg font-bold">TourOp Admin</h1>
+                <h1 className="text-lg font-bold">{settings?.companyName ?? "TourOp Madagascar"} Admin</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/30 text-xs">
                     <Eye className="w-3 h-3 mr-1" />

@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import React, { useEffect, useState } from "react";
+
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -58,6 +60,11 @@ const navigation = [
     href: "/clients",
   },
   {
+    title: "Vols",
+    icon: Plane,
+    href: "/vols",
+  },
+  {
     title: "Hébergements",
     icon: Building,
     href: "/hebergements",
@@ -72,16 +79,11 @@ const navigation = [
     icon: MapPin,
     href: "/activites",
   },
-  {
-    title: "Vols",
-    icon: Plane,
-    href: "/vols",
-  },
-  {
-    title: "Destinations",
-    icon: Globe,
-    href: "/destinations",
-  },
+  // {
+  //   title: "Destinations",
+  //   icon: Globe,
+  //   href: "/destinations",
+  // },
   // {
   //   title: "Factures",
   //   icon: Receipt,
@@ -98,7 +100,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const { user, logout, canAccessRoute } = useAuth();
   const { hasInvoicePreview, hasTravelPlanPreview } = usePreview();
-
+  const [settings, setSettings] = useState<any>(null);
+  useEffect(() => {
+    const saved = localStorage.getItem("app_settings");
+    if (saved) setSettings(JSON.parse(saved));
+  }, []);
   // Filter navigation items based on user permissions
   const filteredNavigation = navigation.filter((item) =>
     canAccessRoute(item.href),
@@ -115,7 +121,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               <div className="flex-1">
                 <h1 className="text-xl font-bold text-foreground tracking-tight">
-                  TourOp Madagascar
+                  
+                  {settings?.companyName ?? "TourOp Madagascar"}
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm font-medium text-muted-foreground">
@@ -276,12 +283,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <h2 className="text-2xl font-bold text-foreground tracking-tight">
                   {filteredNavigation.find(
                     (item) => item.href === location.pathname,
-                  )?.title || "TourOp Madagascar"}
+                  )?.title || (settings?.companyName ?? "TourOp Madagascar")}
                 </h2>
                 <p className="text-base text-muted-foreground mt-1">
                   {user?.role === "admin"
                     ? "Consultation des données et statistiques"
-                    : "Gérez votre activité de tour opérateur"}
+                    : `Gérez votre activité ${settings?.companyName ?? "TourOp Madagascar"}`}
                 </p>
               </div>
             </div>

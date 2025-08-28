@@ -572,23 +572,17 @@ const VolForm: React.FC<VolFormProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="airline">Compagnie aérienne</Label>
-            <Select
+            <Input
+              type="text"
+              id="airline"
               value={formData.airline}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, airline: value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, airline: e.target.value }))
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une compagnie" />
-              </SelectTrigger>
-              <SelectContent>
-                {airlines.map((airline) => (
-                  <SelectItem key={airline} value={airline}>
-                    {airline}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Madagascar Airlines"
+            />
+              
+            
           </div>
           <div className="space-y-2">
             <Label htmlFor="flightNumber">Numéro de vol</Label>

@@ -23,33 +23,48 @@ import {
   Globe,
   Save,
   Lock,
+  CheckCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import type { User as user } from "@/services/userService";
+import { toast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  const { user } = useAuth();
-  const [settings, setSettings] = useState({
-    companyName: "Madagascar Tours & Travel",
-    companyAddress: "Lot 123 Antananarivo 101, Madagascar",
-    companyPhone: "+261 20 22 123 45",
-    companyEmail: "contact@madagascar-tours.mg",
-    companyWebsite: "www.madagascar-tours.mg",
-
-    theme: "light",
-    language: "fr",
-    currency: "EUR",
-    dateFormat: "dd/mm/yyyy",
-
-    emailNotifications: true,
-    smsNotifications: false,
-    invoiceReminders: true,
-    bookingAlerts: true,
+  const [settings, setSettings] = useState(() => {
+    // Charger depuis localStorage au montage
+    const saved = localStorage.getItem("app_settings");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          companyName: "Madagascar Tours & Travel",
+          companyAddress: "Lot 123 Antananarivo 101, Madagascar",
+          companyPhone: "+261 20 22 123 45",
+          companyEmail: "contact@madagascar-tours.mg",
+          companyWebsite: "www.madagascar-tours.mg",
+          theme: "light",
+          language: "fr",
+          currency: "EUR",
+          dateFormat: "dd/mm/yyyy",
+          emailNotifications: true,
+          smsNotifications: false,
+          invoiceReminders: true,
+          bookingAlerts: true,
+        };
   });
-
+  const [users, setUsers] = useState<user[]>([]);
   const handleSave = () => {
+    localStorage.setItem("app_settings", JSON.stringify(settings));
     console.log("Settings saved:", settings);
-  };
-
+    toast({
+      title: "Succès",
+      description: (
+        <div className="flex items-center gap-2 text-emerald-700">
+          <CheckCircle className="w-5 h-5" />
+          Parametres modifié avec succès !
+        </div>
+      ),
+    });
+  } ;
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -313,13 +328,13 @@ export default function Settings() {
                   <User className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="font-medium">{user?.name}</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <p className="font-medium">{User?.name}</p>
+                  <p className="text-sm text-muted-foreground">{users?.email}</p>
                 </div>
               </div>
-              <Badge variant="default">
-                {user?.role === "admin" ? "Administrateur" : "Secrétaire"}
-              </Badge>
+              {/* <Badge variant="default">
+                {users[3]?.role === "admin" ? "Administrateur" : "Secrétaire"}
+              </Badge> */}
             </div>
 
             <Button variant="outline" className="w-full">
